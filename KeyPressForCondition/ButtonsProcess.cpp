@@ -82,8 +82,8 @@ DWORD WINAPI ButtonProcedure(CONST LPVOID lpParam)
 						if (param.ButtonFTimer[cnt].status.NumPressCnt < param.ButtonFTimer[cnt].param.NumPress)
 						{
 							param.ButtonFTimer[cnt].status.NumPressCnt++;
-							param.ButtonFTimer[cnt].status.timeDelay = clock() + param.ButtonFTimer[cnt].param.PeriodPress;
-							timeDelay = clock() + param.ButtonFTimer[cnt].param.DelayAfterPress;
+							param.ButtonFTimer[cnt].status.timeDelay = clock() + param.ButtonFTimer[cnt].param.PeriodPress + RangedRand(0, 100);
+							timeDelay = clock() + param.ButtonFTimer[cnt].param.DelayAfterPress + RangedRand(0, 80);
 							SendKey(param.ButtonFTimer[cnt].param.indexButton);
 							KeyIndexFString(param.ButtonFTimer[cnt].param.indexButton, szKey);
 							HistoryKeyProc(szKey);
@@ -115,8 +115,8 @@ DWORD WINAPI ButtonProcedure(CONST LPVOID lpParam)
 
 						if(flagColorFCondition)
 						{
-							param.ButtonFCondition[cnt].status.timeDelay = clock() + param.ButtonFCondition[cnt].param.PeriodPress;
-							timeDelay = clock() + param.ButtonFCondition[cnt].param.DelayAfterPress;
+							param.ButtonFCondition[cnt].status.timeDelay = clock() + param.ButtonFCondition[cnt].param.PeriodPress + RangedRand(0, 100);
+							timeDelay = clock() + param.ButtonFCondition[cnt].param.DelayAfterPress + RangedRand(0, 80);
 							SendKey(param.ButtonFCondition[cnt].param.indexButton);
 							KeyIndexFString(param.ButtonFCondition[cnt].param.indexButton, szKey);
 							HistoryKeyProc(szKey);
@@ -163,7 +163,8 @@ DWORD WINAPI ReadScreenProcedure(CONST LPVOID lpParam)
 				if (param.ButtonFCondition[cnt].param.Activate)
 				{
 					BuferColor[cnt] = GetPixel(dc, param.ButtonFCondition[cnt].status.X, param.ButtonFCondition[cnt].status.Y);
-					MarkPixel(dc, param.ButtonFCondition[cnt].status.X, param.ButtonFCondition[cnt].status.Y);
+					if(param.flagMarkPixel)
+						MarkPixel(dc, param.ButtonFCondition[cnt].status.X, param.ButtonFCondition[cnt].status.Y);
 					SetGUICurrentPixelColor(cnt, BuferColor[cnt]);
 				}
 			}
@@ -179,7 +180,7 @@ DWORD WINAPI ReadScreenProcedure(CONST LPVOID lpParam)
 			}
 			ReleaseMutex(hMutexReadScreen);
 		}
-		Sleep(30);
+		Sleep(15);
 	}
 
 	if (hTreadReadScreen) CloseHandle(hTreadReadScreen);
@@ -240,7 +241,7 @@ UCHAR SendKey(UINT index)
 	{
 		CodeKey = KeyIndexFUSBKeyCode(index);
 		USBSendMassage(CodeKey, 1);
-		Sleep(RangedRand(100, 150));
+		//Sleep(RangedRand(100, 150));
 	}
 	else
 	{
@@ -357,6 +358,8 @@ UCHAR KeyIndexFString(UINT index, TCHAR * szResult)
 		StringCchPrintf(szResult, 5, L"%c\0", L'Y');
 	else if (index == 59)
 		StringCchPrintf(szResult, 5, L"%c\0", L'Z');
+	else if (index == 60)
+		StringCchPrintf(szResult, 5, L"%s\0", L"ESC");
 	else
 		return 1;
 
@@ -408,7 +411,7 @@ UCHAR KeyIndexFVirtualKeyCode(UINT index)
 	}
 
 	//A-Z
-	for (cnt = 0; cnt < 60; cnt++)
+	for (cnt = 0; cnt < 26; cnt++)
 	{
 		if (index == 34 + cnt)
 		{
@@ -416,6 +419,13 @@ UCHAR KeyIndexFVirtualKeyCode(UINT index)
 		}
 	}
 	
+	//ESC	
+	if (index == 60)
+	{
+		return VK_ESCAPE;
+	}
+	
+
 	return 0;
 }
 //------------------------------------------------------------------------------
@@ -476,12 +486,18 @@ UCHAR KeyIndexFUSBKeyCode(UINT index)
 	}
 
 	//A-Z
-	for (cnt = 0; cnt < 60; cnt++)
+	for (cnt = 0; cnt < 26; cnt++)
 	{
 		if (index == 34 + cnt)
 		{
 			return 0x04 + cnt;
 		}
+	}
+
+	//ESC
+	if (index == 60)
+	{
+		return 0x29;
 	}
 
 	return 0;

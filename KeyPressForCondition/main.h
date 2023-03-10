@@ -73,6 +73,7 @@ struct UserParameters_DType
 
 	UCHAR Active;
 	UCHAR USBDev;
+	UCHAR flagMarkPixel;
 };
 //******************************************************************************
 // Секция определения глобальных переменных

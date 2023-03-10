@@ -58,6 +58,7 @@ enum {
 	ClickButtonSearchWindowHandles,
 
 	CheckBoxUSB,
+	CheckBoxMarkPixel,	
 
 	OnExitSoftware,
 };

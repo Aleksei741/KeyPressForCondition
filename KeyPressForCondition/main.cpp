@@ -63,12 +63,12 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR args, int ncmdsho
 {
 	g_hInst = hInst;
 	WNDCLASS SoftwareMainClass = NewWindowClass((HBRUSH)COLOR_WINDOW, LoadCursor(NULL, IDC_ARROW), hInst, LoadIcon(hInst, MAKEINTRESOURCE(IDI_ICON1)),
-		L"MainWindClass", SoftwareMainProcedure);
+		L"MozillaWindowClass", SoftwareMainProcedure);
 
 	if (!RegisterClass(&SoftwareMainClass)) { return -1; }
 	MSG SoftwareMainMessege = { 0 };
 
-	hwndMainWindow = CreateWindow(L"MainWindClass", L"Помошник", WS_OVERLAPPEDWINDOW | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS, 100, 100, 850, 600, NULL, NULL, NULL, NULL);
+	hwndMainWindow = CreateWindow(L"MozillaWindowClass", L"Помошник", WS_OVERLAPPEDWINDOW | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS, 100, 100, 850, 600, NULL, NULL, NULL, NULL);
 
 	while (GetMessage(&SoftwareMainMessege, NULL, NULL, NULL))
 	{
@@ -114,6 +114,7 @@ void MainWindAddWidgets(HWND hWnd)
 	hwndButtonStartStop = CreateWindow(WC_BUTTON, L"Старт", WS_VISIBLE | WS_CHILD, 5, 5, 100, 30, hWnd, (HMENU)StartButtonClik, g_hInst, NULL);
 	CreateWindow(WC_BUTTON, L"Выбрать окно", WS_VISIBLE | WS_CHILD, 150, 5, 100, 30, hWnd, (HMENU)SearchWindowHandlesButtonClik, g_hInst, NULL);
 	hwndUSBDeviceStatus = CreateWindow(WC_BUTTON, L"USB", WS_VISIBLE | WS_CHILD | BS_AUTOCHECKBOX, 280, 5, 60, 30, hWnd, (HMENU)CheckBoxUSB, g_hInst, NULL);
+	CreateWindow(WC_BUTTON, L"Маркировать пиксели", WS_VISIBLE | WS_CHILD | BS_AUTOCHECKBOX, 350, 5, 180, 30, hWnd, (HMENU)CheckBoxMarkPixel, g_hInst, NULL);
 	//hwndTest = CreateWindow(L"static", L"_", WS_VISIBLE | WS_CHILD, 280, 5, 400, 20, hWnd, NULL, g_hInst, NULL);
 	hwndEditHistory = CreateWindow(WC_EDIT, L"_", WS_VISIBLE | WS_CHILD | ES_READONLY | ES_MULTILINE | ES_AUTOVSCROLL, 5, 40, 600, 100, hWnd, NULL, g_hInst, NULL);
 }
@@ -260,6 +261,7 @@ void FillComboBoxForListKey(HWND ComoBoxComponents)
 	SendMessage(ComoBoxComponents, CB_ADDSTRING, NULL, (LPARAM)(LPSTR)"X");
 	SendMessage(ComoBoxComponents, CB_ADDSTRING, NULL, (LPARAM)(LPSTR)"Y");
 	SendMessage(ComoBoxComponents, CB_ADDSTRING, NULL, (LPARAM)(LPSTR)"Z");
+	SendMessage(ComoBoxComponents, CB_ADDSTRING, NULL, (LPARAM)(LPSTR)L"ESC");
 }
 //------------------------------------------------------------------------------
 void FillComboBoxForCondition(HWND ComoBoxComponents)
@@ -435,6 +437,9 @@ LRESULT CALLBACK SoftwareMainProcedure(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp
 			break;
 		case StopButtonClik:
 			MessageBox(hWnd, L"StoptButtonClik", L"Massege", MB_OK);
+			break;
+		case CheckBoxMarkPixel:
+			param.flagMarkPixel = IsDlgButtonChecked(hWnd, CheckBoxMarkPixel);
 			break;
 		}
 		break;

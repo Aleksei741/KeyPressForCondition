@@ -18,8 +18,9 @@ HANDLE hTreadUSBProcedure;              //Поток USB
 OVERLAPPED oRead;          //флаг асинхронного чтения
 OVERLAPPED oWrite;         //флаг асинхронной записи (не используется)
 HANDLE fileID = 0;  //Заголовок устройства
-bool StatusReadeUSBDevice = false;
-bool StatusWriteUSBDevice = false;
+BOOL flagFileID = 0;
+bool StatusReadeUSBDevice = true;
+bool StatusWriteUSBDevice = true;
 #define LEN_PACKEGE	10
 unsigned char reportwrite[LEN_PACKEGE+1]; //буфер на запись длинной 65 байт
 unsigned char reportread[LEN_PACKEGE+1];  // буфер приема размером 65 байт (1служ + 64 данные)
@@ -194,6 +195,7 @@ BOOL connecthid(TCHAR *Path)
 	BOOL status = FALSE;
 	if (getinfo(Path))
 	{
+		flagFileID = 1;
 		fileID = CreateFile(Path,
 			GENERIC_READ | GENERIC_WRITE,
 			FILE_SHARE_READ | FILE_SHARE_WRITE,
@@ -293,7 +295,12 @@ int disconhid()
 	}
 	
 	//отключаем устройство
-	if(fileID) CloseHandle(fileID);
+	if (flagFileID)
+	{
+		CloseHandle(fileID);
+		flagFileID = false;
+	}
+		
 
 	flg = FALSE;
 	return status;
@@ -309,6 +316,8 @@ void senddata()//(unsigned char *sBuf, int datalen)
 	//где 1-й байт - ID репорта на запись (=2)
 	//Отправляем данные. Просто открываем поток WriteThread
 	ResumeThread(writer);
+	if (WAIT_OBJECT_0 != WaitForSingleObject(oWrite.hEvent, 100))
+		flg = 0;
 }
 
 
@@ -317,6 +326,7 @@ void USBSendMassage(UCHAR ButtonClick, UCHAR LenButtonClick)
 	for (int i = 0; i < LEN_PACKEGE + 1; i++)
 		reportwrite[i] = 0;
 
+	reportwrite[0] = 0x00;
 	reportwrite[1] = 0x10;
 	reportwrite[2] = ButtonClick;
 	reportwrite[3] = LenButtonClick;
@@ -345,10 +355,13 @@ void StopUSBProcedure()
 DWORD WINAPI MainUSBThread(CONST LPVOID lpParam)
 {
 	loadlib();       //Грузим библиотеку
+	enumd();
 	while (1)
 	{
-		if (flg == 0 || StatusReadeUSBDevice == false || StatusWriteUSBDevice == false)
+		//if (flg == 0 || StatusReadeUSBDevice == false || StatusWriteUSBDevice == false)
+		if (flg == 0)
 		{
+			disconhid();
 			enumd();
 		}
 
