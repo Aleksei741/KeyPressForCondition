@@ -194,6 +194,19 @@ BOOL LoadParamsFFile(UserParameters_DType& param, LPWSTR Path)
 			param.ButtonFTimer[cnt].param.DelayAfterPress = retParam;
 		else
 			ret = FALSE;
+
+		//Нажатие с Shift ом
+		StringCchPrintf(szBuf, sizeof(szBuf) / sizeof(szBuf[0]), L"Shift%d\0", cnt + 1);
+		retParam = GetPrivateProfileInt(
+			L"KeyFTimer",
+			szBuf,
+			DEFAULT_VALUE_GET_FILE,
+			Path
+		);
+		if (retParam != DEFAULT_VALUE_GET_FILE)
+			param.ButtonFTimer[cnt].param.Shift = retParam;
+		else
+			ret = FALSE;
 	}
 
 	//Считываем параметры нажатия по событиям
@@ -276,6 +289,19 @@ BOOL LoadParamsFFile(UserParameters_DType& param, LPWSTR Path)
 			param.ButtonFCondition[cnt].param.DelayAfterPress = retParam;
 		else
 			ret = FALSE;
+
+		//Shift
+		StringCchPrintf(szBuf, sizeof(szBuf) / sizeof(szBuf[0]), L"Shift%d\0", cnt + 1);
+		retParam = GetPrivateProfileInt(
+			L"KeyFCondition",
+			szBuf,
+			DEFAULT_VALUE_GET_FILE,
+			Path
+		);
+		if (retParam != DEFAULT_VALUE_GET_FILE)
+			param.ButtonFCondition[cnt].param.Shift = retParam;
+		else
+			ret = FALSE;
 	}
 	return ret;
 }
@@ -340,6 +366,16 @@ void SaveParamsFFile(const UserParameters_DType param,const LPWSTR Path)
 			data,
 			Path
 		);
+
+		//Shift
+		StringCchPrintf(szBuf, sizeof(szBuf) / sizeof(szBuf[0]), L"Shift%d\0", cnt + 1);
+		StringCchPrintf(data, sizeof(data) / sizeof(data[0]), L"%d\0", param.ButtonFTimer[cnt].param.Shift);
+		ret = WritePrivateProfileString(
+			L"KeyFTimer",
+			szBuf,
+			data,
+			Path
+		);
 	}
 
 	//Считываем параметры нажатия по событиям
@@ -398,6 +434,16 @@ void SaveParamsFFile(const UserParameters_DType param,const LPWSTR Path)
 		//Период нажатия
 		StringCchPrintf(szBuf, sizeof(szBuf) / sizeof(szBuf[0]), L"PeriodPress%d\0", cnt + 1);
 		StringCchPrintf(data, sizeof(data) / sizeof(data[0]), L"%d\0", param.ButtonFCondition[cnt].param.PeriodPress);
+		ret = WritePrivateProfileString(
+			L"KeyFCondition",
+			szBuf,
+			data,
+			Path
+		);
+
+		//Shift
+		StringCchPrintf(szBuf, sizeof(szBuf) / sizeof(szBuf[0]), L"Shift%d\0", cnt + 1);
+		StringCchPrintf(data, sizeof(data) / sizeof(data[0]), L"%d\0", param.ButtonFCondition[cnt].param.Shift);
 		ret = WritePrivateProfileString(
 			L"KeyFCondition",
 			szBuf,

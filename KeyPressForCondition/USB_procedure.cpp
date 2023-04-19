@@ -321,7 +321,7 @@ void senddata()//(unsigned char *sBuf, int datalen)
 }
 
 
-void USBSendMassage(UCHAR ButtonClick, UCHAR LenButtonClick)
+void USBSendMassage(UCHAR ButtonClick, UCHAR LenButtonClick, UCHAR ModifiedKey)
 {
 	for (int i = 0; i < LEN_PACKEGE + 1; i++)
 		reportwrite[i] = 0;
@@ -330,7 +330,7 @@ void USBSendMassage(UCHAR ButtonClick, UCHAR LenButtonClick)
 	reportwrite[1] = 0x10;
 	reportwrite[2] = ButtonClick;
 	reportwrite[3] = LenButtonClick;
-	
+	reportwrite[6] = ModifiedKey;
 	if(flg) senddata();
 }
 

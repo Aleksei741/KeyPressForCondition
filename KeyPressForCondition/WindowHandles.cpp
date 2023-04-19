@@ -104,7 +104,7 @@ LRESULT CALLBACK SearchWindowHandlesProcedure(HWND hWnd, UINT msg, WPARAM wp, LP
 	case WM_CREATE:	//вызывается при создании окна
 		hWndLBParentWndText = CreateWindow(L"listbox", NULL, WS_CHILD | WS_VISIBLE | WS_VSCROLL | LBS_STANDARD | LBS_WANTKEYBOARDINPUT, 10, 40, 450, 200, hWnd, (HMENU)ID_LISTBOX_SearchWindowHandles, NULL, NULL);
 		CreateWindow(L"static", L"Выбор активного окна", WS_CHILD | WS_VISIBLE, 10, 10, 200, 30, hWnd, NULL, NULL, NULL);
-		//CreateWindowEx(NULL, L"button", L"Обновить", WS_CHILD | WS_VISIBLE, 10, 40, 80, 30, hWnd, (HMENU)ClickButtonSearchWindowHandles, hInsSearchWindowHandlest, NULL);
+		CreateWindowEx(NULL, L"button", L"Обновить", WS_CHILD | WS_VISIBLE, 250, 5, 80, 30, hWnd, (HMENU)ClickButtonSearchWindowHandles, hInsSearchWindowHandlest, NULL);
 		//hWndCurrentWndNum = CreateWindowA("static", "Num: ", WS_VISIBLE | WS_CHILD, 10, 250, 200, 20, hWnd, NULL, NULL, NULL);
 		hWndCurrentWndText = CreateWindowA("static", "Text: ", WS_VISIBLE | WS_CHILD, 10, 250, 450, 50, hWnd, NULL, NULL, NULL);
 		hWndCurrentWndClass = CreateWindowA("static", "Class: ", WS_VISIBLE | WS_CHILD, 10, 310, 450, 50, hWnd, NULL, NULL, NULL);
@@ -129,6 +129,7 @@ LRESULT CALLBACK SearchWindowHandlesProcedure(HWND hWnd, UINT msg, WPARAM wp, LP
 		break;
 	default: return DefWindowProc(hWnd, msg, wp, lp);
 	}
+	return DefWindowProc(hWnd, msg, wp, lp);
 }
 
 BOOL CALLBACK EnumWndProc(HWND hWnd, LPARAM lParam)

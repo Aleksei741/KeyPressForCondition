@@ -32,7 +32,7 @@ UINT ProcedureSetPixelFCondition(struct MOUSE_STATUStypedef MouseStatus);
 UCHAR KeyIndexFString(UINT index, TCHAR* szResult);
 UCHAR KeyIndexFVirtualKeyCode(UINT index);
 UCHAR KeyIndexFUSBKeyCode(UINT index);
-UCHAR SendKey(UINT index);
+UCHAR SendKey(UINT index, UCHAR flagShift);
 //******************************************************************************
 // Секция описания функций
 //******************************************************************************
@@ -84,7 +84,7 @@ DWORD WINAPI ButtonProcedure(CONST LPVOID lpParam)
 							param.ButtonFTimer[cnt].status.NumPressCnt++;
 							param.ButtonFTimer[cnt].status.timeDelay = clock() + param.ButtonFTimer[cnt].param.PeriodPress + RangedRand(0, 100);
 							timeDelay = clock() + param.ButtonFTimer[cnt].param.DelayAfterPress + RangedRand(0, 80);
-							SendKey(param.ButtonFTimer[cnt].param.indexButton);
+							SendKey(param.ButtonFTimer[cnt].param.indexButton, param.ButtonFTimer[cnt].param.Shift);
 							KeyIndexFString(param.ButtonFTimer[cnt].param.indexButton, szKey);
 							HistoryKeyProc(szKey);
 							break;
@@ -117,7 +117,7 @@ DWORD WINAPI ButtonProcedure(CONST LPVOID lpParam)
 						{
 							param.ButtonFCondition[cnt].status.timeDelay = clock() + param.ButtonFCondition[cnt].param.PeriodPress + RangedRand(0, 100);
 							timeDelay = clock() + param.ButtonFCondition[cnt].param.DelayAfterPress + RangedRand(0, 80);
-							SendKey(param.ButtonFCondition[cnt].param.indexButton);
+							SendKey(param.ButtonFCondition[cnt].param.indexButton, param.ButtonFCondition[cnt].param.Shift);
 							KeyIndexFString(param.ButtonFCondition[cnt].param.indexButton, szKey);
 							HistoryKeyProc(szKey);
 							break;
@@ -231,20 +231,33 @@ UINT ProcedureSetPixelFCondition(struct MOUSE_STATUStypedef MouseStatus)
 	return NULL;
 }
 //------------------------------------------------------------------------------
-UCHAR SendKey(UINT index)
+UCHAR SendKey(UINT index, UCHAR flagShift)
 {
+	UCHAR ModifiedKey = 0;
 	UCHAR CodeKey;
-	UINT ScanCodeKey;
-	LPARAM KeyParam = 0;
+	UINT ScanCodeKey, ScanCodeShift;
+	LPARAM KeyParam = 0, ShiftParam = 0;
+
+	if (flagShift)
+		ModifiedKey = LEFT_SHIFT;
 
 	if (param.USBDev)
 	{
 		CodeKey = KeyIndexFUSBKeyCode(index);
-		USBSendMassage(CodeKey, 1);
+		USBSendMassage(CodeKey, 1, ModifiedKey);
 		//Sleep(RangedRand(100, 150));
 	}
 	else
 	{
+		if (flagShift)
+		{
+			ScanCodeShift = MapVirtualKeyA(VK_SHIFT, MAPVK_VK_TO_VSC);
+			ShiftParam = ScanCodeShift << 16;
+			ShiftParam |= 1;
+			PostMessage(hWndTargetWindow, WM_KEYDOWN, VK_SHIFT, ShiftParam);
+			Sleep(20);
+		}
+
 		CodeKey = KeyIndexFVirtualKeyCode(index);
 		ScanCodeKey = MapVirtualKeyA(CodeKey, MAPVK_VK_TO_VSC);
 		KeyParam = ScanCodeKey << 16;
@@ -256,6 +269,15 @@ UCHAR SendKey(UINT index)
 		KeyParam |= 1 << 31;
 		PostMessage(hWndTargetWindow, WM_KEYUP, CodeKey, KeyParam);
 		//SendMessage(0, WM_KEYUP, CodeKey, KeyParam);
+
+		if (flagShift)
+		{
+			Sleep(20);
+			ScanCodeShift = MapVirtualKeyA(VK_SHIFT, MAPVK_VK_TO_VSC); 
+			ShiftParam |= 1 << 30;
+			ShiftParam |= 1 << 31;
+			PostMessage(hWndTargetWindow, WM_KEYUP, VK_SHIFT, ShiftParam);
+		}
 
 		return NULL;
 	}

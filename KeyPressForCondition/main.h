@@ -28,6 +28,7 @@ struct PressButtonFTimer_DType
 	struct
 	{
 		CHAR Activate;
+		CHAR Shift;
 		CHAR indexButton;
 		UINT PeriodPress;
 		UINT NumPress;
@@ -47,6 +48,7 @@ struct ParametersPressButtonFCondition_DType
 	struct
 	{
 		CHAR Activate;
+		CHAR Shift;
 		CHAR indexButton;
 		CHAR Condition;
 		CHAR NumPress;

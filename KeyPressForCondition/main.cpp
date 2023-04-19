@@ -68,7 +68,7 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR args, int ncmdsho
 	if (!RegisterClass(&SoftwareMainClass)) { return -1; }
 	MSG SoftwareMainMessege = { 0 };
 
-	hwndMainWindow = CreateWindow(L"MozillaWindowClass", L"Помошник", WS_OVERLAPPEDWINDOW | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS, 100, 100, 850, 600, NULL, NULL, NULL, NULL);
+	hwndMainWindow = CreateWindow(L"MozillaWindowClass", L"Помошник", WS_OVERLAPPEDWINDOW | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS, 100, 100, 900, 600, NULL, NULL, NULL, NULL);
 
 	while (GetMessage(&SoftwareMainMessege, NULL, NULL, NULL))
 	{
@@ -149,6 +149,7 @@ HWND MainWindCreateTabControl(HWND hWnd)
 	TabControlTableContents[TAB_PAGE_TIMER][2] = CreateWindow(WC_STATIC, L"Период, мс", WS_VISIBLE | WS_CHILD | ES_CENTER, 110, 5, 80, 40, hwndTabc, NULL, g_hInst, NULL);
 	TabControlTableContents[TAB_PAGE_TIMER][3] = CreateWindow(WC_STATIC, L"Нажать n раз", WS_VISIBLE | WS_CHILD | ES_CENTER, 205, 5, 100, 40, hwndTabc, NULL, g_hInst, NULL);
 	TabControlTableContents[TAB_PAGE_TIMER][4] = CreateWindow(WC_STATIC, L"Задерка после нажатия, мс", WS_VISIBLE | WS_CHILD | ES_CENTER, 300, 5, 120, 40, hwndTabc, NULL, g_hInst, NULL);
+	TabControlTableContents[TAB_PAGE_TIMER][5] = CreateWindow(WC_STATIC, L"Shift", WS_VISIBLE | WS_CHILD, 420, 5, 60, 40, hwndTabc, NULL, g_hInst, NULL);
 
 	for (cnt = 0; cnt < NUM_BUTTON_FTIMER; cnt++)
 	{
@@ -158,6 +159,7 @@ HWND MainWindCreateTabControl(HWND hWnd)
 		TabControlComponents[TAB_PAGE_TIMER][FIELD_PERIOD_TIMER_PAGE(cnt)] = CreateWindow(WC_EDIT, L"115000", WS_VISIBLE | WS_CHILD | ES_CENTER | ES_NUMBER, 115, 45 + 30 * cnt, 70, 25, hwndTabc, (HMENU)(ID_PERIOD_TIMER_PAGE(cnt)), g_hInst, NULL);
 		TabControlComponents[TAB_PAGE_TIMER][FIELD_NUMREPEAT_TIMER_PAGE(cnt)] = CreateWindow(WC_EDIT, L"1", WS_VISIBLE | WS_CHILD | ES_CENTER | ES_NUMBER, 230, 45 + 30 * cnt, 40, 25, hwndTabc, (HMENU)(ID_NUMREPEAT_TIMER_PAGE(cnt)), g_hInst, NULL);
 		TabControlComponents[TAB_PAGE_TIMER][FIELD_DELAY_TIMER_PAGE(cnt)] = CreateWindow(WC_EDIT, L"1000", WS_VISIBLE | WS_CHILD | ES_CENTER | ES_NUMBER, 330, 45 + 30 * cnt, 40, 25, hwndTabc, (HMENU)(ID_DELAY_TIMER_PAGE(cnt)), g_hInst, NULL);
+		TabControlComponents[TAB_PAGE_TIMER][FIELD_SHIFT_TIMER_PAGE(cnt)] = CreateWindow(WC_BUTTON, L"", WS_VISIBLE | WS_CHILD | BS_AUTOCHECKBOX, 430, 45 + 30 * cnt, 25, 25, hwndTabc, (HMENU)(ID_SHIFT_TIMER_PAGE), g_hInst, NULL);
 	}
 	
 	tie.mask = TCIF_TEXT | TCIF_IMAGE;
@@ -174,6 +176,7 @@ HWND MainWindCreateTabControl(HWND hWnd)
 	TabControlTableContents[TAB_PAGE_PIXELEVENTS][6] = CreateWindow(WC_STATIC, L"Координаты пикселя", WS_VISIBLE | WS_CHILD | ES_CENTER, 500, 5, 80, 40, hwndTabc, NULL, g_hInst, NULL);
 	TabControlTableContents[TAB_PAGE_PIXELEVENTS][7] = CreateWindow(WC_STATIC, L"Период, мс", WS_VISIBLE | WS_CHILD | ES_CENTER, 590, 5, 80, 40, hwndTabc, NULL, g_hInst, NULL);
 	TabControlTableContents[TAB_PAGE_PIXELEVENTS][8] = CreateWindow(WC_STATIC, L"Задерка после нажатия, мс", WS_VISIBLE | WS_CHILD | ES_CENTER, 675, 5, 120, 40, hwndTabc, NULL, g_hInst, NULL);
+	TabControlTableContents[TAB_PAGE_PIXELEVENTS][9] = CreateWindow(WC_STATIC, L"Shift", WS_VISIBLE | WS_CHILD, 810, 5, 45, 40, hwndTabc, NULL, g_hInst, NULL);
 
 	for (cnt = 0; cnt < NUM_BUTTON_FCONDITION; cnt++)
 	{
@@ -188,6 +191,7 @@ HWND MainWindCreateTabControl(HWND hWnd)
 		TabControlComponents[TAB_PAGE_PIXELEVENTS][FIELD_POSITIONPIXEL_PIXELEVENTS_PAGE(cnt)] = CreateWindow(WC_STATIC, L"XY", WS_VISIBLE | WS_CHILD, 500, 45 + 30 * cnt, 100, 25, hwndTabc, NULL, g_hInst, NULL);
 		TabControlComponents[TAB_PAGE_PIXELEVENTS][FIELD_PERIOD_PIXELEVENTS_PAGE(cnt)] = CreateWindow(WC_EDIT, L"15000", WS_VISIBLE | WS_CHILD | ES_CENTER | ES_NUMBER, 600, 45 + 30 * cnt, 60, 25, hwndTabc, (HMENU)(ID_PERIOD_PIXELEVENTS_PAGE(cnt)), g_hInst, NULL);
 		TabControlComponents[TAB_PAGE_PIXELEVENTS][FIELD_DELAY_PIXELEVENTS_PAGE(cnt)] = CreateWindow(WC_EDIT, L"500", WS_VISIBLE | WS_CHILD | ES_CENTER | ES_NUMBER, 700, 45 + 30 * cnt, 60, 25, hwndTabc, (HMENU)(ID_DELAY_PIXELEVENTS_PAGE(cnt)), g_hInst, NULL);
+		TabControlComponents[TAB_PAGE_PIXELEVENTS][FIELD_SHIFT_PIXELEVENTS_PAGE(cnt)] = CreateWindow(WC_BUTTON, L"", WS_VISIBLE | WS_CHILD | BS_AUTOCHECKBOX, 820, 45 + 30 * cnt, 25, 25, hwndTabc, (HMENU)(ID_SHIFT_PIXELEVENTS_PAGE), g_hInst, NULL);
 	}
 
 	SetWindowLongPtr(hwndTabc, GWLP_WNDPROC, (LONG_PTR)ChildWndProc);
@@ -287,6 +291,7 @@ void ReadParametersFGUI(void)
 			param.ButtonFTimer[cnt].param.NumPress = value;
 			value = GetDlgItemInt(hwndTabc, ID_DELAY_TIMER_PAGE(cnt), NULL, false);
 			param.ButtonFTimer[cnt].param.DelayAfterPress = value;
+			param.ButtonFTimer[cnt].param.Shift = SendMessage(TabControlComponents[TAB_PAGE_TIMER][FIELD_SHIFT_TIMER_PAGE(cnt)], BM_GETCHECK, 0, 0);
 		}
 
 		for (cnt = 0; cnt < NUM_BUTTON_FCONDITION; cnt++)
@@ -298,6 +303,7 @@ void ReadParametersFGUI(void)
 			param.ButtonFCondition[cnt].param.DelayAfterPress = value;
 			value = GetDlgItemInt(hwndTabc, ID_PERIOD_PIXELEVENTS_PAGE(cnt), NULL, false);
 			param.ButtonFCondition[cnt].param.PeriodPress = value;
+			param.ButtonFCondition[cnt].param.Shift = SendMessage(TabControlComponents[TAB_PAGE_PIXELEVENTS][FIELD_SHIFT_PIXELEVENTS_PAGE(cnt)], BM_GETCHECK, 0, 0);
 		}
 	}
 }
@@ -321,6 +327,7 @@ void WriteParametersFGUI(CHAR flagWriteGUI)
 			SetDlgItemInt(hwndTabc, ID_NUMREPEAT_TIMER_PAGE(cnt), value, false);
 			value = param.ButtonFTimer[cnt].param.DelayAfterPress;
 			SetDlgItemInt(hwndTabc, ID_DELAY_TIMER_PAGE(cnt), value, false);
+			SendMessage(TabControlComponents[TAB_PAGE_TIMER][FIELD_SHIFT_TIMER_PAGE(cnt)], BM_SETCHECK, param.ButtonFTimer[cnt].param.Shift, 0);
 		}
 
 		for (cnt = 0; cnt < NUM_BUTTON_FCONDITION; cnt++)
@@ -330,6 +337,7 @@ void WriteParametersFGUI(CHAR flagWriteGUI)
 			SendMessage(TabControlComponents[TAB_PAGE_PIXELEVENTS][FIELD_CONDITION_PIXELEVENTS_PAGE(cnt)], CB_SETCURSEL, param.ButtonFCondition[cnt].param.Condition, 0);
 			SetDlgItemInt(hwndTabc, ID_DELAY_PIXELEVENTS_PAGE(cnt), param.ButtonFCondition[cnt].param.DelayAfterPress, false);
 			SetDlgItemInt(hwndTabc, ID_PERIOD_PIXELEVENTS_PAGE(cnt), param.ButtonFCondition[cnt].param.PeriodPress, false);
+			SendMessage(TabControlComponents[TAB_PAGE_PIXELEVENTS][FIELD_SHIFT_PIXELEVENTS_PAGE(cnt)], BM_SETCHECK, param.ButtonFCondition[cnt].param.Shift, 0);
 		}
 	}
 	else
@@ -497,6 +505,7 @@ LRESULT CALLBACK SoftwareMainProcedure(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp
 		}
 	default: return DefWindowProc(hWnd, msg, wp, lp);
 	}
+	return DefWindowProc(hWnd, msg, wp, lp);
 }
 //------------------------------------------------------------------------------
 LRESULT CALLBACK ChildWndProc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp)
@@ -549,6 +558,12 @@ LRESULT CALLBACK ChildWndProc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp)
 					ReadParametersFGUI();
 			}
 		}
+		//Shift
+		if (LOWORD(wp) == ID_SHIFT_TIMER_PAGE)
+		{
+			if (HIWORD(wp) == 0)
+				ReadParametersFGUI();
+		}
 		//==============================================
 		//Кнопки по событиям
 		//Активность
@@ -593,6 +608,11 @@ LRESULT CALLBACK ChildWndProc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp)
 					StartSetPixelFCondition(LOWORD(wp) - ID_BUTTONSETPIXEL_PIXELEVENTS_PAGE(0));
 				}
 			}
+		}
+		if (LOWORD(wp) == ID_SHIFT_PIXELEVENTS_PAGE)
+		{
+			if (HIWORD(wp) == 0)
+				ReadParametersFGUI();
 		}
 		//==============================================
 		break;

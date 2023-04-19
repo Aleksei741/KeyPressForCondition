@@ -31,11 +31,10 @@
 int enumd(void);
 int disconhid(void);
 void senddata(void);
-void ledon(unsigned char data);
 BOOL GetConectionStatus(void);
 BOOL connecthid(TCHAR* Path);
 BOOL getinfo(TCHAR* Path);
-void USBSendMassage(UCHAR ButtonClick, UCHAR LenButtonClick);
+void USBSendMassage(UCHAR ButtonClick, UCHAR LenButtonClick, UCHAR ModifiedKey);
 
 void StartUSBProcedure();
 void StopUSBProcedure();
