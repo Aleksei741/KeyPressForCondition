@@ -149,17 +149,19 @@ HWND MainWindCreateTabControl(HWND hWnd)
 	TabControlTableContents[TAB_PAGE_TIMER][2] = CreateWindow(WC_STATIC, L"Период, мс", WS_VISIBLE | WS_CHILD | ES_CENTER, 110, 5, 80, 40, hwndTabc, NULL, g_hInst, NULL);
 	TabControlTableContents[TAB_PAGE_TIMER][3] = CreateWindow(WC_STATIC, L"Нажать n раз", WS_VISIBLE | WS_CHILD | ES_CENTER, 205, 5, 100, 40, hwndTabc, NULL, g_hInst, NULL);
 	TabControlTableContents[TAB_PAGE_TIMER][4] = CreateWindow(WC_STATIC, L"Задерка после нажатия, мс", WS_VISIBLE | WS_CHILD | ES_CENTER, 300, 5, 120, 40, hwndTabc, NULL, g_hInst, NULL);
-	TabControlTableContents[TAB_PAGE_TIMER][5] = CreateWindow(WC_STATIC, L"Shift", WS_VISIBLE | WS_CHILD, 420, 5, 60, 40, hwndTabc, NULL, g_hInst, NULL);
+	TabControlTableContents[TAB_PAGE_TIMER][5] = CreateWindow(WC_STATIC, L"Ctrl/Alt/Shift", WS_VISIBLE | WS_CHILD, 420, 5, 80, 40, hwndTabc, NULL, g_hInst, NULL);
 
 	for (cnt = 0; cnt < NUM_BUTTON_FTIMER; cnt++)
 	{
 		TabControlComponents[TAB_PAGE_TIMER][FIELD_ACTIVE_TIMER_PAGE(cnt)] = CreateWindow(WC_BUTTON, L"", WS_VISIBLE | WS_CHILD | BS_AUTOCHECKBOX, 10, 45 + 30 * cnt, 25, 25, hwndTabc, (HMENU)(ID_ACTIVE_TIMER_PAGE), g_hInst, NULL);
-		TabControlComponents[TAB_PAGE_TIMER][FIELD_BUTTON_TIMER_PAGE(cnt)] = CreateWindow(WC_COMBOBOX, NULL, WS_CHILD | WS_VISIBLE | WS_VSCROLL | CBS_AUTOHSCROLL | CBS_DROPDOWNLIST, 45, 45 + 30 * cnt, 50, 25, hwndTabc, (HMENU)(ID_BUTTON_TIMER_PAGE), g_hInst, NULL);
+		TabControlComponents[TAB_PAGE_TIMER][FIELD_BUTTON_TIMER_PAGE(cnt)] = CreateWindow(WC_COMBOBOX, NULL, WS_CHILD | WS_VISIBLE | WS_VSCROLL | CBS_AUTOHSCROLL | CBS_DROPDOWNLIST, 40, 45 + 30 * cnt, 60, 25, hwndTabc, (HMENU)(ID_BUTTON_TIMER_PAGE), g_hInst, NULL);
 		FillComboBoxForListKey(TabControlComponents[TAB_PAGE_TIMER][FIELD_BUTTON_TIMER_PAGE(cnt)]);
 		TabControlComponents[TAB_PAGE_TIMER][FIELD_PERIOD_TIMER_PAGE(cnt)] = CreateWindow(WC_EDIT, L"115000", WS_VISIBLE | WS_CHILD | ES_CENTER | ES_NUMBER, 115, 45 + 30 * cnt, 70, 25, hwndTabc, (HMENU)(ID_PERIOD_TIMER_PAGE(cnt)), g_hInst, NULL);
 		TabControlComponents[TAB_PAGE_TIMER][FIELD_NUMREPEAT_TIMER_PAGE(cnt)] = CreateWindow(WC_EDIT, L"1", WS_VISIBLE | WS_CHILD | ES_CENTER | ES_NUMBER, 230, 45 + 30 * cnt, 40, 25, hwndTabc, (HMENU)(ID_NUMREPEAT_TIMER_PAGE(cnt)), g_hInst, NULL);
 		TabControlComponents[TAB_PAGE_TIMER][FIELD_DELAY_TIMER_PAGE(cnt)] = CreateWindow(WC_EDIT, L"1000", WS_VISIBLE | WS_CHILD | ES_CENTER | ES_NUMBER, 330, 45 + 30 * cnt, 40, 25, hwndTabc, (HMENU)(ID_DELAY_TIMER_PAGE(cnt)), g_hInst, NULL);
-		TabControlComponents[TAB_PAGE_TIMER][FIELD_SHIFT_TIMER_PAGE(cnt)] = CreateWindow(WC_BUTTON, L"", WS_VISIBLE | WS_CHILD | BS_AUTOCHECKBOX, 430, 45 + 30 * cnt, 25, 25, hwndTabc, (HMENU)(ID_SHIFT_TIMER_PAGE), g_hInst, NULL);
+		TabControlComponents[TAB_PAGE_TIMER][FIELD_CTRL_TIMER_PAGE(cnt)] = CreateWindow(WC_BUTTON, L"", WS_VISIBLE | WS_CHILD | BS_AUTOCHECKBOX, 425, 45 + 30 * cnt, 20, 20, hwndTabc, (HMENU)(ID_CTRL_TIMER_PAGE), g_hInst, NULL);
+		TabControlComponents[TAB_PAGE_TIMER][FIELD_ALT_TIMER_PAGE(cnt)] = CreateWindow(WC_BUTTON, L"", WS_VISIBLE | WS_CHILD | BS_AUTOCHECKBOX, 450, 45 + 30 * cnt, 20, 20, hwndTabc, (HMENU)(ID_ALT_TIMER_PAGE), g_hInst, NULL);
+		TabControlComponents[TAB_PAGE_TIMER][FIELD_SHIFT_TIMER_PAGE(cnt)] = CreateWindow(WC_BUTTON, L"", WS_VISIBLE | WS_CHILD | BS_AUTOCHECKBOX, 475, 45 + 30 * cnt, 20, 20, hwndTabc, (HMENU)(ID_SHIFT_TIMER_PAGE), g_hInst, NULL);
 	}
 	
 	tie.mask = TCIF_TEXT | TCIF_IMAGE;
@@ -176,12 +178,12 @@ HWND MainWindCreateTabControl(HWND hWnd)
 	TabControlTableContents[TAB_PAGE_PIXELEVENTS][6] = CreateWindow(WC_STATIC, L"Координаты пикселя", WS_VISIBLE | WS_CHILD | ES_CENTER, 500, 5, 80, 40, hwndTabc, NULL, g_hInst, NULL);
 	TabControlTableContents[TAB_PAGE_PIXELEVENTS][7] = CreateWindow(WC_STATIC, L"Период, мс", WS_VISIBLE | WS_CHILD | ES_CENTER, 590, 5, 80, 40, hwndTabc, NULL, g_hInst, NULL);
 	TabControlTableContents[TAB_PAGE_PIXELEVENTS][8] = CreateWindow(WC_STATIC, L"Задерка после нажатия, мс", WS_VISIBLE | WS_CHILD | ES_CENTER, 675, 5, 120, 40, hwndTabc, NULL, g_hInst, NULL);
-	TabControlTableContents[TAB_PAGE_PIXELEVENTS][9] = CreateWindow(WC_STATIC, L"Shift", WS_VISIBLE | WS_CHILD, 810, 5, 45, 40, hwndTabc, NULL, g_hInst, NULL);
+	TabControlTableContents[TAB_PAGE_PIXELEVENTS][9] = CreateWindow(WC_STATIC, L"Ctrl/Alt/Shift", WS_VISIBLE | WS_CHILD, 790, 5, 80, 40, hwndTabc, NULL, g_hInst, NULL);
 
 	for (cnt = 0; cnt < NUM_BUTTON_FCONDITION; cnt++)
 	{
 		TabControlComponents[TAB_PAGE_PIXELEVENTS][FIELD_ACTIVE_PIXELEVENTS_PAGE(cnt)] = CreateWindow(WC_BUTTON, L"", WS_VISIBLE | WS_CHILD | BS_AUTOCHECKBOX, 10, 45 + 30 * cnt, 25, 25, hwndTabc, (HMENU)(ID_ACTIVE_PIXELEVENTS_PAGE), g_hInst, NULL);
-		TabControlComponents[TAB_PAGE_PIXELEVENTS][FIELD_BUTTON_PIXELEVENTS_PAGE(cnt)] = CreateWindow(WC_COMBOBOX, NULL, WS_CHILD | WS_VISIBLE | WS_VSCROLL | CBS_AUTOHSCROLL | CBS_DROPDOWNLIST, 45, 45 + 30 * cnt, 50, 25, hwndTabc, (HMENU)(ID_BUTTON_PIXELEVENTS_PAGE), g_hInst, NULL);
+		TabControlComponents[TAB_PAGE_PIXELEVENTS][FIELD_BUTTON_PIXELEVENTS_PAGE(cnt)] = CreateWindow(WC_COMBOBOX, NULL, WS_CHILD | WS_VISIBLE | WS_VSCROLL | CBS_AUTOHSCROLL | CBS_DROPDOWNLIST, 40, 45 + 30 * cnt, 60, 25, hwndTabc, (HMENU)(ID_BUTTON_PIXELEVENTS_PAGE), g_hInst, NULL);
 		FillComboBoxForListKey(TabControlComponents[TAB_PAGE_PIXELEVENTS][FIELD_BUTTON_PIXELEVENTS_PAGE(cnt)]);
 		TabControlComponents[TAB_PAGE_PIXELEVENTS][FIELD_SETCOLOR_PIXELEVENTS_PAGE(cnt)] = CreateWindow(WC_STATIC, L"RGB", WS_VISIBLE | WS_CHILD, 105, 45 + 30 * cnt, 110, 25, hwndTabc, NULL, g_hInst, NULL);
 		TabControlComponents[TAB_PAGE_PIXELEVENTS][FIELD_CONDITION_PIXELEVENTS_PAGE(cnt)] = CreateWindow(WC_COMBOBOX, NULL, WS_CHILD | WS_VISIBLE | WS_VSCROLL | CBS_AUTOHSCROLL | CBS_DROPDOWNLIST, 220, 45 + 30 * cnt, 35, 25, hwndTabc, (HMENU)(ID_CONDITION_PIXELEVENTS_PAGE), g_hInst, NULL);
@@ -191,7 +193,9 @@ HWND MainWindCreateTabControl(HWND hWnd)
 		TabControlComponents[TAB_PAGE_PIXELEVENTS][FIELD_POSITIONPIXEL_PIXELEVENTS_PAGE(cnt)] = CreateWindow(WC_STATIC, L"XY", WS_VISIBLE | WS_CHILD, 500, 45 + 30 * cnt, 100, 25, hwndTabc, NULL, g_hInst, NULL);
 		TabControlComponents[TAB_PAGE_PIXELEVENTS][FIELD_PERIOD_PIXELEVENTS_PAGE(cnt)] = CreateWindow(WC_EDIT, L"15000", WS_VISIBLE | WS_CHILD | ES_CENTER | ES_NUMBER, 600, 45 + 30 * cnt, 60, 25, hwndTabc, (HMENU)(ID_PERIOD_PIXELEVENTS_PAGE(cnt)), g_hInst, NULL);
 		TabControlComponents[TAB_PAGE_PIXELEVENTS][FIELD_DELAY_PIXELEVENTS_PAGE(cnt)] = CreateWindow(WC_EDIT, L"500", WS_VISIBLE | WS_CHILD | ES_CENTER | ES_NUMBER, 700, 45 + 30 * cnt, 60, 25, hwndTabc, (HMENU)(ID_DELAY_PIXELEVENTS_PAGE(cnt)), g_hInst, NULL);
-		TabControlComponents[TAB_PAGE_PIXELEVENTS][FIELD_SHIFT_PIXELEVENTS_PAGE(cnt)] = CreateWindow(WC_BUTTON, L"", WS_VISIBLE | WS_CHILD | BS_AUTOCHECKBOX, 820, 45 + 30 * cnt, 25, 25, hwndTabc, (HMENU)(ID_SHIFT_PIXELEVENTS_PAGE), g_hInst, NULL);
+		TabControlComponents[TAB_PAGE_PIXELEVENTS][FIELD_CTRL_PIXELEVENTS_PAGE(cnt)] = CreateWindow(WC_BUTTON, L"", WS_VISIBLE | WS_CHILD | BS_AUTOCHECKBOX, 795, 45 + 30 * cnt, 20, 20, hwndTabc, (HMENU)(ID_CTRL_PIXELEVENTS_PAGE), g_hInst, NULL);
+		TabControlComponents[TAB_PAGE_PIXELEVENTS][FIELD_ALT_PIXELEVENTS_PAGE(cnt)] = CreateWindow(WC_BUTTON, L"", WS_VISIBLE | WS_CHILD | BS_AUTOCHECKBOX, 820, 45 + 30 * cnt, 20, 20, hwndTabc, (HMENU)(ID_ALT_PIXELEVENTS_PAGE), g_hInst, NULL);
+		TabControlComponents[TAB_PAGE_PIXELEVENTS][FIELD_SHIFT_PIXELEVENTS_PAGE(cnt)] = CreateWindow(WC_BUTTON, L"", WS_VISIBLE | WS_CHILD | BS_AUTOCHECKBOX, 845, 45 + 30 * cnt, 20, 20, hwndTabc, (HMENU)(ID_SHIFT_PIXELEVENTS_PAGE), g_hInst, NULL);
 	}
 
 	SetWindowLongPtr(hwndTabc, GWLP_WNDPROC, (LONG_PTR)ChildWndProc);
@@ -266,6 +270,11 @@ void FillComboBoxForListKey(HWND ComoBoxComponents)
 	SendMessage(ComoBoxComponents, CB_ADDSTRING, NULL, (LPARAM)(LPSTR)"Y");
 	SendMessage(ComoBoxComponents, CB_ADDSTRING, NULL, (LPARAM)(LPSTR)"Z");
 	SendMessage(ComoBoxComponents, CB_ADDSTRING, NULL, (LPARAM)(LPSTR)L"ESC");
+	SendMessage(ComoBoxComponents, CB_ADDSTRING, NULL, (LPARAM)(LPSTR)L"TAB");
+	SendMessage(ComoBoxComponents, CB_ADDSTRING, NULL, (LPARAM)(LPSTR)L"Space");
+	SendMessage(ComoBoxComponents, CB_ADDSTRING, NULL, (LPARAM)(LPSTR)L"~");
+	SendMessage(ComoBoxComponents, CB_ADDSTRING, NULL, (LPARAM)(LPSTR)L"Backspace");
+	SendMessage(ComoBoxComponents, CB_ADDSTRING, NULL, (LPARAM)(LPSTR)L"Enter");
 }
 //------------------------------------------------------------------------------
 void FillComboBoxForCondition(HWND ComoBoxComponents)
@@ -291,6 +300,8 @@ void ReadParametersFGUI(void)
 			param.ButtonFTimer[cnt].param.NumPress = value;
 			value = GetDlgItemInt(hwndTabc, ID_DELAY_TIMER_PAGE(cnt), NULL, false);
 			param.ButtonFTimer[cnt].param.DelayAfterPress = value;
+			param.ButtonFTimer[cnt].param.Ctrl = SendMessage(TabControlComponents[TAB_PAGE_TIMER][FIELD_CTRL_TIMER_PAGE(cnt)], BM_GETCHECK, 0, 0);
+			param.ButtonFTimer[cnt].param.Alt = SendMessage(TabControlComponents[TAB_PAGE_TIMER][FIELD_ALT_TIMER_PAGE(cnt)], BM_GETCHECK, 0, 0);
 			param.ButtonFTimer[cnt].param.Shift = SendMessage(TabControlComponents[TAB_PAGE_TIMER][FIELD_SHIFT_TIMER_PAGE(cnt)], BM_GETCHECK, 0, 0);
 		}
 
@@ -303,6 +314,8 @@ void ReadParametersFGUI(void)
 			param.ButtonFCondition[cnt].param.DelayAfterPress = value;
 			value = GetDlgItemInt(hwndTabc, ID_PERIOD_PIXELEVENTS_PAGE(cnt), NULL, false);
 			param.ButtonFCondition[cnt].param.PeriodPress = value;
+			param.ButtonFCondition[cnt].param.Ctrl = SendMessage(TabControlComponents[TAB_PAGE_PIXELEVENTS][FIELD_CTRL_PIXELEVENTS_PAGE(cnt)], BM_GETCHECK, 0, 0);
+			param.ButtonFCondition[cnt].param.Alt = SendMessage(TabControlComponents[TAB_PAGE_PIXELEVENTS][FIELD_ALT_PIXELEVENTS_PAGE(cnt)], BM_GETCHECK, 0, 0);
 			param.ButtonFCondition[cnt].param.Shift = SendMessage(TabControlComponents[TAB_PAGE_PIXELEVENTS][FIELD_SHIFT_PIXELEVENTS_PAGE(cnt)], BM_GETCHECK, 0, 0);
 		}
 	}
@@ -327,6 +340,8 @@ void WriteParametersFGUI(CHAR flagWriteGUI)
 			SetDlgItemInt(hwndTabc, ID_NUMREPEAT_TIMER_PAGE(cnt), value, false);
 			value = param.ButtonFTimer[cnt].param.DelayAfterPress;
 			SetDlgItemInt(hwndTabc, ID_DELAY_TIMER_PAGE(cnt), value, false);
+			SendMessage(TabControlComponents[TAB_PAGE_TIMER][FIELD_CTRL_TIMER_PAGE(cnt)], BM_SETCHECK, param.ButtonFTimer[cnt].param.Ctrl, 0);
+			SendMessage(TabControlComponents[TAB_PAGE_TIMER][FIELD_ALT_TIMER_PAGE(cnt)], BM_SETCHECK, param.ButtonFTimer[cnt].param.Alt, 0);
 			SendMessage(TabControlComponents[TAB_PAGE_TIMER][FIELD_SHIFT_TIMER_PAGE(cnt)], BM_SETCHECK, param.ButtonFTimer[cnt].param.Shift, 0);
 		}
 
@@ -337,6 +352,8 @@ void WriteParametersFGUI(CHAR flagWriteGUI)
 			SendMessage(TabControlComponents[TAB_PAGE_PIXELEVENTS][FIELD_CONDITION_PIXELEVENTS_PAGE(cnt)], CB_SETCURSEL, param.ButtonFCondition[cnt].param.Condition, 0);
 			SetDlgItemInt(hwndTabc, ID_DELAY_PIXELEVENTS_PAGE(cnt), param.ButtonFCondition[cnt].param.DelayAfterPress, false);
 			SetDlgItemInt(hwndTabc, ID_PERIOD_PIXELEVENTS_PAGE(cnt), param.ButtonFCondition[cnt].param.PeriodPress, false);
+			SendMessage(TabControlComponents[TAB_PAGE_PIXELEVENTS][FIELD_CTRL_PIXELEVENTS_PAGE(cnt)], BM_SETCHECK, param.ButtonFCondition[cnt].param.Ctrl, 0);
+			SendMessage(TabControlComponents[TAB_PAGE_PIXELEVENTS][FIELD_ALT_PIXELEVENTS_PAGE(cnt)], BM_SETCHECK, param.ButtonFCondition[cnt].param.Alt, 0);
 			SendMessage(TabControlComponents[TAB_PAGE_PIXELEVENTS][FIELD_SHIFT_PIXELEVENTS_PAGE(cnt)], BM_SETCHECK, param.ButtonFCondition[cnt].param.Shift, 0);
 		}
 	}
@@ -354,7 +371,7 @@ void HistoryKeyProc(TCHAR *szKey)
 	UCHAR cntLine;
 	UCHAR lenLine;
 
-	StringCchCat(szKey, 5, L" ");
+	StringCchCat(szKey, 20, L" ");
 
 	SendMessage(hwndEditHistory, EM_SETSEL, 0, -1);
 	SendMessage(hwndEditHistory, EM_SETSEL, -1, 0);
@@ -558,8 +575,23 @@ LRESULT CALLBACK ChildWndProc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp)
 					ReadParametersFGUI();
 			}
 		}
+		//----------------------------------------------
 		//Shift
 		if (LOWORD(wp) == ID_SHIFT_TIMER_PAGE)
+		{
+			if (HIWORD(wp) == 0)
+				ReadParametersFGUI();
+		}
+		//----------------------------------------------
+		//Ctrl
+		if (LOWORD(wp) == ID_CTRL_TIMER_PAGE)
+		{
+			if (HIWORD(wp) == 0)
+				ReadParametersFGUI();
+		}
+		//----------------------------------------------
+		//Alt
+		if (LOWORD(wp) == ID_ALT_TIMER_PAGE)
 		{
 			if (HIWORD(wp) == 0)
 				ReadParametersFGUI();
@@ -586,6 +618,7 @@ LRESULT CALLBACK ChildWndProc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp)
 			if (HIWORD(wp) == CBN_SELCHANGE)
 				ReadParametersFGUI();
 		}
+		//----------------------------------------------
 		//Период, Кнопка установки пикселей
 		for (cnt = 0; cnt < NUM_BUTTON_FTIMER; cnt++)
 		{
@@ -609,7 +642,20 @@ LRESULT CALLBACK ChildWndProc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp)
 				}
 			}
 		}
+		//----------------------------------------------
 		if (LOWORD(wp) == ID_SHIFT_PIXELEVENTS_PAGE)
+		{
+			if (HIWORD(wp) == 0)
+				ReadParametersFGUI();
+		}
+		//----------------------------------------------
+		if (LOWORD(wp) == ID_CTRL_PIXELEVENTS_PAGE)
+		{
+			if (HIWORD(wp) == 0)
+				ReadParametersFGUI();
+		}
+		//----------------------------------------------
+		if (LOWORD(wp) == ID_ALT_PIXELEVENTS_PAGE)
 		{
 			if (HIWORD(wp) == 0)
 				ReadParametersFGUI();
