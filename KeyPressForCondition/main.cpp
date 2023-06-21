@@ -43,6 +43,8 @@ HWND hwndUSBDeviceStatus;
 
 CHAR flagSetParamFGUI = 1;
 CHAR flagButtonStart = 0;
+BOOL flagReWriteGUI = FALSE;
+clock_t timeReWriteGUI = 0;
 //******************************************************************************
 // Секция прототипов локальных функций
 //******************************************************************************
@@ -55,6 +57,7 @@ HWND MainWindCreateTabControl(HWND hWnd);
 void FillComboBoxForListKey(HWND ComoBoxComponents);
 void FillComboBoxForCondition(HWND ComoBoxComponents);
 void ReadParametersFGUI(void);
+void ReadBeepParametersFGUI(void);
 void WriteParametersFGUI(CHAR flagWriteGUI);
 //******************************************************************************
 // Секция описания функций
@@ -198,6 +201,35 @@ HWND MainWindCreateTabControl(HWND hWnd)
 		TabControlComponents[TAB_PAGE_PIXELEVENTS][FIELD_SHIFT_PIXELEVENTS_PAGE(cnt)] = CreateWindow(WC_BUTTON, L"", WS_VISIBLE | WS_CHILD | BS_AUTOCHECKBOX, 845, 45 + 30 * cnt, 20, 20, hwndTabc, (HMENU)(ID_SHIFT_PIXELEVENTS_PAGE), g_hInst, NULL);
 	}
 
+	tie.mask = TCIF_TEXT | TCIF_IMAGE;
+	tie.iImage = -1;
+	tie.pszText = (LPWSTR)L"Alarm'ы";
+	TabCtrl_InsertItem(hwndTab, TAB_PAGE_ALARM, &tie);
+
+	TabControlTableContents[TAB_PAGE_ALARM][0] = CreateWindow(WC_STATIC, L"Вкл", WS_VISIBLE | WS_CHILD, 5, 5, 40, 40, hwndTabc, NULL, g_hInst, NULL);
+	TabControlTableContents[TAB_PAGE_ALARM][2] = CreateWindow(WC_STATIC, L"Текущий цвет", WS_VISIBLE | WS_CHILD | SS_LEFT, 45, 5, 125, 40, hwndTabc, NULL, g_hInst, NULL);
+	TabControlTableContents[TAB_PAGE_ALARM][3] = CreateWindow(WC_STATIC, L"Условие", WS_VISIBLE | WS_CHILD | ES_CENTER, 130, 5, 100, 40, hwndTabc, NULL, g_hInst, NULL);
+	TabControlTableContents[TAB_PAGE_ALARM][4] = CreateWindow(WC_STATIC, L"Заданный\n цвет", WS_VISIBLE | WS_CHILD | SS_LEFT, 225, 5, 110, 40, hwndTabc, NULL, g_hInst, NULL);
+	TabControlTableContents[TAB_PAGE_ALARM][5] = CreateWindow(WC_STATIC, L"Задать пиксель", WS_VISIBLE | WS_CHILD | ES_CENTER, 345, 5, 80, 40, hwndTabc, NULL, g_hInst, NULL);
+	TabControlTableContents[TAB_PAGE_ALARM][6] = CreateWindow(WC_STATIC, L"Координаты пикселя", WS_VISIBLE | WS_CHILD | ES_CENTER, 445, 5, 80, 40, hwndTabc, NULL, g_hInst, NULL);
+	TabControlTableContents[TAB_PAGE_ALARM][7] = CreateWindow(WC_STATIC, L"Бип len, мс", WS_VISIBLE | WS_CHILD | ES_CENTER, 535, 5, 80, 40, hwndTabc, NULL, g_hInst, NULL);
+	TabControlTableContents[TAB_PAGE_ALARM][8] = CreateWindow(WC_STATIC, L"Бип freq, Гц", WS_VISIBLE | WS_CHILD | ES_CENTER, 630, 5, 80, 40, hwndTabc, NULL, g_hInst, NULL);
+	TabControlTableContents[TAB_PAGE_ALARM][9] = CreateWindow(WC_STATIC, L"Бип период, мс", WS_VISIBLE | WS_CHILD | ES_CENTER, 720, 5, 80, 40, hwndTabc, NULL, g_hInst, NULL);
+
+	for (cnt = 0; cnt < NUM_ALARM; cnt++)
+	{
+		TabControlComponents[TAB_PAGE_ALARM][FIELD_ACTIVE_ALARM_PAGE(cnt)] = CreateWindow(WC_BUTTON, L"", WS_VISIBLE | WS_CHILD | BS_AUTOCHECKBOX, 10, 45 + 30 * cnt, 25, 25, hwndTabc, (HMENU)(ID_ACTIVE_ALARM_PAGE), g_hInst, NULL);
+		TabControlComponents[TAB_PAGE_ALARM][FIELD_SETCOLOR_ALARM_PAGE(cnt)] = CreateWindow(WC_STATIC, L"RGB", WS_VISIBLE | WS_CHILD, 50, 45 + 30 * cnt, 110, 25, hwndTabc, NULL, g_hInst, NULL);
+		TabControlComponents[TAB_PAGE_ALARM][FIELD_CONDITION_ALARM_PAGE(cnt)] = CreateWindow(WC_COMBOBOX, NULL, WS_CHILD | WS_VISIBLE | WS_VSCROLL | CBS_AUTOHSCROLL | CBS_DROPDOWNLIST, 165, 45 + 30 * cnt, 35, 25, hwndTabc, (HMENU)(ID_CONDITION_ALARM_PAGE), g_hInst, NULL);
+		FillComboBoxForCondition(TabControlComponents[TAB_PAGE_ALARM][FIELD_CONDITION_ALARM_PAGE(cnt)]);
+		TabControlComponents[TAB_PAGE_ALARM][FIELD_GETCOLOR_ALARM_PAGE(cnt)] = CreateWindow(WC_STATIC, L"RGB", WS_VISIBLE | WS_CHILD, 225, 45 + 30 * cnt, 110, 25, hwndTabc, NULL, g_hInst, NULL);
+		TabControlComponents[TAB_PAGE_ALARM][FIELD_BUTTONSETPIXEL_ALARM_PAGE(cnt)] = CreateWindow(WC_BUTTON, L"-", WS_VISIBLE | WS_CHILD, 355, 45 + 30 * cnt, 60, 25, hwndTabc, (HMENU)(ID_BUTTONSETPIXEL_ALARM_PAGE(cnt)), g_hInst, NULL);
+		TabControlComponents[TAB_PAGE_ALARM][FIELD_POSITIONPIXEL_ALARM_PAGE(cnt)] = CreateWindow(WC_STATIC, L"XY", WS_VISIBLE | WS_CHILD, 445, 45 + 30 * cnt, 100, 25, hwndTabc, NULL, g_hInst, NULL);		
+		TabControlComponents[TAB_PAGE_ALARM][FIELD_BEEPLEN_ALARM_PAGE(cnt)] = CreateWindow(WC_EDIT, L"300", WS_VISIBLE | WS_CHILD | ES_CENTER | ES_NUMBER, 545, 45 + 30 * cnt, 60, 25, hwndTabc, (HMENU)(ID_BEEPLEN_ALARM_PAGE(cnt)), g_hInst, NULL);
+		TabControlComponents[TAB_PAGE_ALARM][FIELD_BEEPFREQ_ALARM_PAGE(cnt)] = CreateWindow(WC_EDIT, L"1000", WS_VISIBLE | WS_CHILD | ES_CENTER | ES_NUMBER, 640, 45 + 30 * cnt, 60, 25, hwndTabc, (HMENU)(ID_BEEPFREQ_ALARM_PAGE(cnt)), g_hInst, NULL);
+		TabControlComponents[TAB_PAGE_ALARM][FIELD_BEEPPERIOD_ALARM_PAGE(cnt)] = CreateWindow(WC_EDIT, L"5000", WS_VISIBLE | WS_CHILD | ES_CENTER | ES_NUMBER, 730, 45 + 30 * cnt, 60, 25, hwndTabc, (HMENU)(ID_BEEPPERIOD_ALARM_PAGE(cnt)), g_hInst, NULL);
+	}
+
 	SetWindowLongPtr(hwndTabc, GWLP_WNDPROC, (LONG_PTR)ChildWndProc);
 
 	for (int i = 1; i < TAB_PAGES; i++)
@@ -227,6 +259,11 @@ void FillComboBoxForListKey(HWND ComoBoxComponents)
 		StringCchPrintf(szBuf, 4 / sizeof(CHAR), L"L%d\0", cnt);
 		SendMessage(ComoBoxComponents, CB_ADDSTRING, NULL, (LPARAM)(LPSTR)szBuf);
 	}
+
+	SendMessage(ComoBoxComponents, CB_ADDSTRING, NULL, (LPARAM)(LPSTR)L"L /");
+	SendMessage(ComoBoxComponents, CB_ADDSTRING, NULL, (LPARAM)(LPSTR)L"L *");
+	SendMessage(ComoBoxComponents, CB_ADDSTRING, NULL, (LPARAM)(LPSTR)L"L -");
+	SendMessage(ComoBoxComponents, CB_ADDSTRING, NULL, (LPARAM)(LPSTR)L"L +");
 
 	for (cnt = 0; cnt < 10; cnt++)
 	{
@@ -283,6 +320,51 @@ void FillComboBoxForCondition(HWND ComoBoxComponents)
 	SendMessage(ComoBoxComponents, CB_ADDSTRING, NULL, (LPARAM)(LPSTR)L"!=");
 }
 //------------------------------------------------------------------------------
+void ReadBeepParametersFGUI(void)
+{
+	UINT value;
+	CHAR cnt;
+
+	DWORD Period;
+	DWORD Freq;
+	DWORD Len;
+
+	if (flagSetParamFGUI)
+	{
+		flagReWriteGUI = FALSE;
+		for (cnt = 0; cnt < NUM_ALARM; cnt++)
+		{
+			Len = GetDlgItemInt(hwndTabc, ID_BEEPLEN_ALARM_PAGE(cnt), NULL, false);
+			Freq = GetDlgItemInt(hwndTabc, ID_BEEPFREQ_ALARM_PAGE(cnt), NULL, false);
+			Period = GetDlgItemInt(hwndTabc, ID_BEEPPERIOD_ALARM_PAGE(cnt), NULL, false);
+
+			if (Len >= Period && Period != 0)
+			{
+				Len = Period - 1;
+				flagReWriteGUI = TRUE;
+				//SetDlgItemInt(hwndTabc, ID_BEEPLEN_ALARM_PAGE(cnt), Len, false);
+			}
+			else if (Freq < 37)
+			{
+				Freq = 37;
+				flagReWriteGUI = TRUE;
+				//SetDlgItemInt(hwndTabc, ID_BEEPFREQ_ALARM_PAGE(cnt), Freq, false);
+			}
+			else if (Freq > 32767)
+			{
+				Freq = 32767;
+				flagReWriteGUI = TRUE;
+				//SetDlgItemInt(hwndTabc, ID_BEEPFREQ_ALARM_PAGE(cnt), Freq, false);
+			}				
+
+			timeReWriteGUI = clock() + 3500;
+			param.Alarm[cnt].param.BeepLen = Len;
+			param.Alarm[cnt].param.BeepFreq = Freq;
+			param.Alarm[cnt].param.BeepPeriod = Period;
+		}
+	}
+}
+//------------------------------------------------------------------------------
 void ReadParametersFGUI(void)
 {
 	UINT value;
@@ -317,6 +399,15 @@ void ReadParametersFGUI(void)
 			param.ButtonFCondition[cnt].param.Ctrl = SendMessage(TabControlComponents[TAB_PAGE_PIXELEVENTS][FIELD_CTRL_PIXELEVENTS_PAGE(cnt)], BM_GETCHECK, 0, 0);
 			param.ButtonFCondition[cnt].param.Alt = SendMessage(TabControlComponents[TAB_PAGE_PIXELEVENTS][FIELD_ALT_PIXELEVENTS_PAGE(cnt)], BM_GETCHECK, 0, 0);
 			param.ButtonFCondition[cnt].param.Shift = SendMessage(TabControlComponents[TAB_PAGE_PIXELEVENTS][FIELD_SHIFT_PIXELEVENTS_PAGE(cnt)], BM_GETCHECK, 0, 0);
+		}
+
+		for (cnt = 0; cnt < NUM_ALARM; cnt++)
+		{
+			param.Alarm[cnt].param.Activate = SendMessage(TabControlComponents[TAB_PAGE_ALARM][FIELD_ACTIVE_ALARM_PAGE(cnt)], BM_GETCHECK, 0, 0);
+			param.Alarm[cnt].param.Condition = SendMessage(TabControlComponents[TAB_PAGE_ALARM][FIELD_CONDITION_ALARM_PAGE(cnt)], CB_GETCURSEL, 0, 0);
+			//param.Alarm[cnt].param.BeepLen = GetDlgItemInt(hwndTabc, ID_BEEPLEN_ALARM_PAGE(cnt), NULL, false);
+			//param.Alarm[cnt].param.BeepFreq = GetDlgItemInt(hwndTabc, ID_BEEPFREQ_ALARM_PAGE(cnt), NULL, false);
+			//param.Alarm[cnt].param.BeepPeriod = GetDlgItemInt(hwndTabc, ID_BEEPPERIOD_ALARM_PAGE(cnt), NULL, false);
 		}
 	}
 }
@@ -356,6 +447,15 @@ void WriteParametersFGUI(CHAR flagWriteGUI)
 			SendMessage(TabControlComponents[TAB_PAGE_PIXELEVENTS][FIELD_ALT_PIXELEVENTS_PAGE(cnt)], BM_SETCHECK, param.ButtonFCondition[cnt].param.Alt, 0);
 			SendMessage(TabControlComponents[TAB_PAGE_PIXELEVENTS][FIELD_SHIFT_PIXELEVENTS_PAGE(cnt)], BM_SETCHECK, param.ButtonFCondition[cnt].param.Shift, 0);
 		}
+
+		for (cnt = 0; cnt < NUM_ALARM; cnt++)
+		{
+			SendMessage(TabControlComponents[TAB_PAGE_ALARM][FIELD_ACTIVE_ALARM_PAGE(cnt)], BM_SETCHECK, param.Alarm[cnt].param.Activate, 0);
+			SendMessage(TabControlComponents[TAB_PAGE_ALARM][FIELD_CONDITION_ALARM_PAGE(cnt)], CB_SETCURSEL, param.Alarm[cnt].param.Condition, 0);	
+			SetDlgItemInt(hwndTabc, ID_BEEPLEN_ALARM_PAGE(cnt), param.Alarm[cnt].param.BeepLen, false);
+			SetDlgItemInt(hwndTabc, ID_BEEPFREQ_ALARM_PAGE(cnt), param.Alarm[cnt].param.BeepFreq, false);
+			SetDlgItemInt(hwndTabc, ID_BEEPPERIOD_ALARM_PAGE(cnt), param.Alarm[cnt].param.BeepPeriod, false);
+		}
 	}
 	else
 	{
@@ -386,22 +486,44 @@ void HistoryKeyProc(TCHAR *szKey)
 	}	
 }
 //------------------------------------------------------------------------------
-void SetGUICurrentPixelColor(CHAR index, COLORREF color)
+void SetGUICurrentPixelColor(UCHAR index, COLORREF color)
 {
+	UCHAR tmp;
 	TCHAR szBuf[100];
 
 	StringCchPrintf(szBuf, 100, L"R%dG%dB%d", GetRValue(color), GetGValue(color), GetBValue(color));
-	SendMessage(TabControlComponents[TAB_PAGE_PIXELEVENTS][FIELD_SETCOLOR_PIXELEVENTS_PAGE(index)], WM_SETTEXT, 0, (LPARAM)szBuf);
+	if (index >= NUM_BUTTON_FCONDITION)
+	{	
+		tmp = index - NUM_BUTTON_FCONDITION;
+		SendMessage(TabControlComponents[TAB_PAGE_ALARM][FIELD_SETCOLOR_ALARM_PAGE(tmp)], WM_SETTEXT, 0, (LPARAM)szBuf);
+	}
+	else
+		SendMessage(TabControlComponents[TAB_PAGE_PIXELEVENTS][FIELD_SETCOLOR_PIXELEVENTS_PAGE(index)], WM_SETTEXT, 0, (LPARAM)szBuf);
 }
 //------------------------------------------------------------------------------
-void SetGUIParamPixelColorAndPosition(CHAR index, COLORREF color, UINT X, UINT Y)
+void SetGUIParamPixelColorAndPosition(UCHAR index, COLORREF color, UINT X, UINT Y)
 {
+	UCHAR tmp;
 	TCHAR szBuf[100];
+	HWND hWndColor;
+	HWND hWndPosition;
+
+	if (index >= NUM_BUTTON_FCONDITION)
+	{
+		tmp = index - NUM_BUTTON_FCONDITION;
+		hWndColor = TabControlComponents[TAB_PAGE_ALARM][FIELD_GETCOLOR_ALARM_PAGE(tmp)];
+		hWndPosition = TabControlComponents[TAB_PAGE_ALARM][FIELD_POSITIONPIXEL_ALARM_PAGE(tmp)];
+	}
+	else
+	{
+		hWndColor = TabControlComponents[TAB_PAGE_PIXELEVENTS][FIELD_GETCOLOR_PIXELEVENTS_PAGE(index)];
+		hWndPosition = TabControlComponents[TAB_PAGE_PIXELEVENTS][FIELD_POSITIONPIXEL_PIXELEVENTS_PAGE(index)];
+	}
 
 	StringCchPrintf(szBuf, 100, L"R%dG%dB%d", GetRValue(color), GetGValue(color), GetBValue(color));
-	SendMessage(TabControlComponents[TAB_PAGE_PIXELEVENTS][FIELD_GETCOLOR_PIXELEVENTS_PAGE(index)], WM_SETTEXT, 0, (LPARAM)szBuf);
+	SendMessage(hWndColor, WM_SETTEXT, 0, (LPARAM)szBuf);
 	StringCchPrintf(szBuf, 100, L"X%dY%d", X, Y);
-	SendMessage(TabControlComponents[TAB_PAGE_PIXELEVENTS][FIELD_POSITIONPIXEL_PIXELEVENTS_PAGE(index)], WM_SETTEXT, 0, (LPARAM)szBuf);
+	SendMessage(hWndPosition, WM_SETTEXT, 0, (LPARAM)szBuf);
 }
 //------------------------------------------------------------------------------
 void SetGUICheckBoxUSB(CHAR status)
@@ -475,13 +597,25 @@ LRESULT CALLBACK SoftwareMainProcedure(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp
 		WriteParametersFGUI(OpenFileDefault(param));
 		ButtonProcessStart();
 		StartUSBProcedure();
+		SetTimer(hWnd, IDTimer, 1000, NULL);
 		break;
 	case WM_DESTROY:	//взывается при закрытии окна
 		SaveFileDefault(param);
 		ButtonProcessStop();
 		StopUSBProcedure();
+		KillTimer(hWnd, IDTimer);
 		PostQuitMessage(0);
 		break;
+
+	case WM_TIMER:
+	{
+		if (flagReWriteGUI && timeReWriteGUI < clock())
+		{
+			WriteParametersFGUI(TRUE);
+			flagReWriteGUI = FALSE;
+		}
+		return 0;
+	}
 
 	case WM_NOTIFY:
 		uNotify = ((LPNMHDR)lp)->code;
@@ -620,7 +754,7 @@ LRESULT CALLBACK ChildWndProc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp)
 		}
 		//----------------------------------------------
 		//Период, Кнопка установки пикселей
-		for (cnt = 0; cnt < NUM_BUTTON_FTIMER; cnt++)
+		for (cnt = 0; cnt < NUM_BUTTON_FCONDITION; cnt++)
 		{
 			if (LOWORD(wp) == ID_PERIOD_PIXELEVENTS_PAGE(cnt))
 			{
@@ -639,6 +773,7 @@ LRESULT CALLBACK ChildWndProc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp)
 				if (HIWORD(wp) == 0)
 				{
 					StartSetPixelFCondition(LOWORD(wp) - ID_BUTTONSETPIXEL_PIXELEVENTS_PAGE(0));
+					CallbackIndicatePixel = &SetGUIParamPixelColorAndPosition;
 				}
 			}
 		}
@@ -659,6 +794,42 @@ LRESULT CALLBACK ChildWndProc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp)
 		{
 			if (HIWORD(wp) == 0)
 				ReadParametersFGUI();
+		}
+		//==============================================
+		//Будильники
+		//Активность
+		if (LOWORD(wp) == ID_ACTIVE_ALARM_PAGE)
+		{
+			if (HIWORD(wp) == 0)
+				ReadParametersFGUI();
+		}
+		//Кнопка установки пикселей, Beep period freq len
+		for (cnt = 0; cnt < NUM_ALARM; cnt++)
+		{
+			if (LOWORD(wp) == ID_BUTTONSETPIXEL_ALARM_PAGE(cnt))
+			{
+				if (HIWORD(wp) == 0)
+				{
+					StartSetPixelAlarm(LOWORD(wp) - ID_BUTTONSETPIXEL_ALARM_PAGE(0));
+					CallbackIndicatePixel = &SetGUIParamPixelColorAndPosition;
+				}
+			}
+
+			if (LOWORD(wp) == ID_BEEPFREQ_ALARM_PAGE(cnt))
+			{
+				if (HIWORD(wp) == EN_UPDATE)
+					ReadBeepParametersFGUI();
+			}
+			if (LOWORD(wp) == ID_BEEPPERIOD_ALARM_PAGE(cnt))
+			{
+				if (HIWORD(wp) == EN_UPDATE)
+					ReadBeepParametersFGUI();
+			}
+			if (LOWORD(wp) == ID_BEEPLEN_ALARM_PAGE(cnt))
+			{
+				if (HIWORD(wp) == EN_UPDATE)
+					ReadBeepParametersFGUI();
+			}
 		}
 		//==============================================
 		break;

@@ -355,6 +355,76 @@ BOOL LoadParamsFFile(UserParameters_DType& param, LPWSTR Path)
 		else
 			ret = FALSE;
 	}
+
+	//Alarm
+	for (cnt = 0; cnt < sizeof(param.Alarm) / sizeof(param.Alarm[0]); cnt++)
+	{
+		//Активность
+		StringCchPrintf(szBuf, sizeof(szBuf) / sizeof(szBuf[0]), L"Activate%d\0", cnt + 1);
+		retParam = GetPrivateProfileInt(
+			L"Alarm",
+			szBuf,
+			DEFAULT_VALUE_GET_FILE,
+			Path
+		);
+		if (retParam != DEFAULT_VALUE_GET_FILE)
+			param.Alarm[cnt].param.Activate = retParam;
+		else
+			ret = FALSE;
+		
+		//Условие
+		StringCchPrintf(szBuf, sizeof(szBuf) / sizeof(szBuf[0]), L"Condition%d\0", cnt + 1);
+		retParam = GetPrivateProfileInt(
+			L"Alarm",
+			szBuf,
+			DEFAULT_VALUE_GET_FILE,
+			Path
+		);
+		if (retParam != DEFAULT_VALUE_GET_FILE)
+			param.Alarm[cnt].param.Condition = retParam;
+		else
+			ret = FALSE;
+
+		//Длина писка
+		StringCchPrintf(szBuf, sizeof(szBuf) / sizeof(szBuf[0]), L"BeepLen%d\0", cnt + 1);
+		retParam = GetPrivateProfileInt(
+			L"Alarm",
+			szBuf,
+			DEFAULT_VALUE_GET_FILE,
+			Path
+		);
+		if (retParam != DEFAULT_VALUE_GET_FILE)
+			param.Alarm[cnt].param.BeepLen = retParam;
+		else
+			ret = FALSE;
+
+		//Частота звка
+		StringCchPrintf(szBuf, sizeof(szBuf) / sizeof(szBuf[0]), L"BeepFreq%d\0", cnt + 1);
+		retParam = GetPrivateProfileInt(
+			L"Alarm",
+			szBuf,
+			DEFAULT_VALUE_GET_FILE,
+			Path
+		);
+		if (retParam != DEFAULT_VALUE_GET_FILE)
+			param.Alarm[cnt].param.BeepFreq = retParam;
+		else
+			ret = FALSE;
+
+		//Период подачи звка
+		StringCchPrintf(szBuf, sizeof(szBuf) / sizeof(szBuf[0]), L"BeepPeriod%d\0", cnt + 1);
+		retParam = GetPrivateProfileInt(
+			L"Alarm",
+			szBuf,
+			DEFAULT_VALUE_GET_FILE,
+			Path
+		);
+		if (retParam != DEFAULT_VALUE_GET_FILE)
+			param.Alarm[cnt].param.BeepPeriod = retParam;
+		else
+			ret = FALSE;
+	}
+
 	return ret;
 }
 //------------------------------------------------------------------------------
@@ -538,6 +608,60 @@ void SaveParamsFFile(const UserParameters_DType param,const LPWSTR Path)
 		StringCchPrintf(data, sizeof(data) / sizeof(data[0]), L"%d\0", param.ButtonFCondition[cnt].param.Alt);
 		ret = WritePrivateProfileString(
 			L"KeyFCondition",
+			szBuf,
+			data,
+			Path
+		);
+	}
+
+	//Считываем параметры нажатия по событиям
+	for (cnt = 0; cnt < sizeof(param.Alarm) / sizeof(param.Alarm[0]); cnt++)
+	{
+		//Активность
+		StringCchPrintf(szBuf, sizeof(szBuf) / sizeof(szBuf[0]), L"Activate%d\0", cnt + 1);
+		StringCchPrintf(data, sizeof(data) / sizeof(data[0]), L"%d\0", param.Alarm[cnt].param.Activate);
+		ret = WritePrivateProfileString(
+			L"Alarm",
+			szBuf,
+			data,
+			Path
+		);
+		
+		//Условие
+		StringCchPrintf(szBuf, sizeof(szBuf) / sizeof(szBuf[0]), L"Condition%d\0", cnt + 1);
+		StringCchPrintf(data, sizeof(data) / sizeof(data[0]), L"%d\0", param.Alarm[cnt].param.Condition);
+		ret = WritePrivateProfileString(
+			L"Alarm",
+			szBuf,
+			data,
+			Path
+		);		
+
+		//Длина звукового сигнала 
+		StringCchPrintf(szBuf, sizeof(szBuf) / sizeof(szBuf[0]), L"BeepLen%d\0", cnt + 1);
+		StringCchPrintf(data, sizeof(data) / sizeof(data[0]), L"%d\0", param.Alarm[cnt].param.BeepLen);
+		ret = WritePrivateProfileString(
+			L"Alarm",
+			szBuf,
+			data,
+			Path
+		);
+
+		//Период звукового сигнала 
+		StringCchPrintf(szBuf, sizeof(szBuf) / sizeof(szBuf[0]), L"BeepPeriod%d\0", cnt + 1);
+		StringCchPrintf(data, sizeof(data) / sizeof(data[0]), L"%d\0", param.Alarm[cnt].param.BeepPeriod);
+		ret = WritePrivateProfileString(
+			L"Alarm",
+			szBuf,
+			data,
+			Path
+		);
+
+		//Частота звукового сигнала 
+		StringCchPrintf(szBuf, sizeof(szBuf) / sizeof(szBuf[0]), L"BeepFreq%d\0", cnt + 1);
+		StringCchPrintf(data, sizeof(data) / sizeof(data[0]), L"%d\0", param.Alarm[cnt].param.BeepFreq);
+		ret = WritePrivateProfileString(
+			L"Alarm",
 			szBuf,
 			data,
 			Path

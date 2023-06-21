@@ -20,6 +20,7 @@
 //******************************************************************************
 #define NUM_BUTTON_FCONDITION	10
 #define NUM_BUTTON_FTIMER		10
+#define NUM_ALARM				10
 //******************************************************************************
 // Секция определения типов
 //******************************************************************************
@@ -62,7 +63,7 @@ struct ParametersPressButtonFCondition_DType
 
 	struct
 	{
-		CHAR flagPixelSet;
+		UCHAR flagPixelSet;
 		clock_t timeDelay;
 		COLORREF savePixelColor;
 		COLORREF curretPixelColor;
@@ -72,10 +73,33 @@ struct ParametersPressButtonFCondition_DType
 
 };
 
+struct ParametersAlarm_DType
+{
+	struct
+	{
+		UCHAR Activate;
+		UCHAR Condition;
+		DWORD BeepLen;
+		DWORD BeepFreq;
+		DWORD BeepPeriod;
+	} param;
+
+	struct
+	{
+		UCHAR flagPixelSet;
+		clock_t timeDelay;
+		COLORREF savePixelColor;
+		COLORREF curretPixelColor;
+		DWORD X;
+		DWORD Y;
+	} status;
+};
+
 struct UserParameters_DType
 {
 	PressButtonFTimer_DType ButtonFTimer[NUM_BUTTON_FTIMER];
 	ParametersPressButtonFCondition_DType ButtonFCondition[NUM_BUTTON_FCONDITION];	
+	ParametersAlarm_DType Alarm[NUM_ALARM];
 
 	UCHAR Active;
 	UCHAR USBDev;
@@ -90,8 +114,8 @@ extern HWND hWndTargetWindow;
 // Секция прототипов глобальных функций
 //******************************************************************************
 void HistoryKeyProc(TCHAR* szKey);
-void SetGUICurrentPixelColor(CHAR index, COLORREF color);
-void SetGUIParamPixelColorAndPosition(CHAR index, COLORREF color, UINT X, UINT Y);
+void SetGUICurrentPixelColor(UCHAR index, COLORREF color);
+void SetGUIParamPixelColorAndPosition(UCHAR index, COLORREF color, UINT X, UINT Y);
 void SetGUICheckBoxUSB(CHAR status);
 //******************************************************************************
 // Секция определения макросов

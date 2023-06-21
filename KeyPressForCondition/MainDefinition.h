@@ -1,8 +1,6 @@
 #pragma once
 #include <Windows.h>
 
-
-
 #define TAB_PAGES	6
 #define TAB_COMPONENTS	150
 #define TAB_TABLECOMPONENTS	10
@@ -11,6 +9,7 @@
 
 #define TAB_PAGE_TIMER	0
 #define TAB_PAGE_PIXELEVENTS	1
+#define TAB_PAGE_ALARM			2
 
 #define FIELDS_TIMER_PAGE 8 
 #define FIELD_ACTIVE_TIMER_PAGE(x)				(0 + FIELDS_TIMER_PAGE * x)
@@ -55,9 +54,30 @@
 #define ID_ALT_PIXELEVENTS_PAGE					(2181)
 #define ID_SHIFT_PIXELEVENTS_PAGE				(2182)
 
+#define FIELDS_ALARM_PAGE 9 
+#define FIELD_ACTIVE_ALARM_PAGE(x)				(0 + FIELDS_ALARM_PAGE * x)
+#define FIELD_CONDITION_ALARM_PAGE(x)			(1 + FIELDS_ALARM_PAGE * x)
+#define FIELD_SETCOLOR_ALARM_PAGE(x)			(2 + FIELDS_ALARM_PAGE * x)
+#define FIELD_GETCOLOR_ALARM_PAGE(x)			(3 + FIELDS_ALARM_PAGE * x)
+#define FIELD_BUTTONSETPIXEL_ALARM_PAGE(x)		(4 + FIELDS_ALARM_PAGE * x)
+#define FIELD_POSITIONPIXEL_ALARM_PAGE(x)		(5 + FIELDS_ALARM_PAGE * x)
+#define FIELD_BEEPFREQ_ALARM_PAGE(x)			(6 + FIELDS_ALARM_PAGE * x)
+#define FIELD_BEEPPERIOD_ALARM_PAGE(x)			(7 + FIELDS_ALARM_PAGE * x)
+#define FIELD_BEEPLEN_ALARM_PAGE(x)				(8 + FIELDS_ALARM_PAGE * x)
+
+#define ID_ACTIVE_ALARM_PAGE					(2200)
+#define ID_CONDITION_ALARM_PAGE					(2201)
+#define ID_BUTTONSETPIXEL_ALARM_PAGE(x)			(2210 + x)
+#define ID_BEEPFREQ_ALARM_PAGE(x)				(2220 + x)
+#define ID_BEEPPERIOD_ALARM_PAGE(x)				(2230 + x)
+#define ID_BEEPLEN_ALARM_PAGE(x)				(2240 + x)
+
+
 enum {
 	OnMenuActionSave,
 	OnMenuActionOpen,
+
+	IDTimer,
 
 	StartButtonClik,
 	StopButtonClik,
