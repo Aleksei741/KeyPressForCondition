@@ -40,6 +40,7 @@ UINT ProcedureSetPixelFCondition(struct MOUSE_STATUStypedef MouseStatus);
 UCHAR KeyIndexFString(UINT index, TCHAR* szResult);
 UCHAR KeyIndexFUSBKeyCode(UINT index);
 UCHAR SendKey(UINT index, UCHAR flagShift, UCHAR flagAlt, UCHAR flagCtrl);
+bool PixelCompare(COLORREF pixel1, COLORREF pixel2, int variation);
 //******************************************************************************
 // Секция описания функций
 //******************************************************************************
@@ -70,7 +71,6 @@ DWORD WINAPI ButtonProcedure(CONST LPVOID lpParam)
 	UINT cnt;
 	TCHAR szKey[20] = {'\0'};
 	clock_t time_;
-	TCHAR *strKey;
 	UCHAR flagColorFCondition = 0;
 	UCHAR flagColorFAlarm = 0;
 
@@ -126,8 +126,8 @@ DWORD WINAPI ButtonProcedure(CONST LPVOID lpParam)
 					if (param.ButtonFCondition[cnt].status.timeDelay < time_ && timeDelay < time_)
 					{
 						WaitForSingleObject(hMutexReadScreen, INFINITE);
-						if ((param.ButtonFCondition[cnt].status.curretPixelColor == param.ButtonFCondition[cnt].status.savePixelColor && param.ButtonFCondition[cnt].param.Condition == 0) ||
-							(param.ButtonFCondition[cnt].status.curretPixelColor != param.ButtonFCondition[cnt].status.savePixelColor && param.ButtonFCondition[cnt].param.Condition == 1)
+						if ((PixelCompare(param.ButtonFCondition[cnt].status.curretPixelColor, param.ButtonFCondition[cnt].status.savePixelColor, 5) == true && param.ButtonFCondition[cnt].param.Condition == 0) ||
+							(PixelCompare(param.ButtonFCondition[cnt].status.curretPixelColor, param.ButtonFCondition[cnt].status.savePixelColor, 5) == false && param.ButtonFCondition[cnt].param.Condition == 1)
 							)
 							flagColorFCondition = 1;
 						else
@@ -161,8 +161,8 @@ DWORD WINAPI ButtonProcedure(CONST LPVOID lpParam)
 					if (param.Alarm[cnt].status.timeDelay < time_ && timeDelayAlarm < time_)
 					{
 						WaitForSingleObject(hMutexReadScreen, INFINITE);
-						if ((param.Alarm[cnt].status.curretPixelColor == param.Alarm[cnt].status.savePixelColor && param.Alarm[cnt].param.Condition == 0) ||
-							(param.Alarm[cnt].status.curretPixelColor != param.Alarm[cnt].status.savePixelColor && param.Alarm[cnt].param.Condition == 1)
+						if ((PixelCompare(param.ButtonFCondition[cnt].status.curretPixelColor, param.ButtonFCondition[cnt].status.savePixelColor, 5) == true && param.Alarm[cnt].param.Condition == 0) ||
+							(PixelCompare(param.ButtonFCondition[cnt].status.curretPixelColor, param.ButtonFCondition[cnt].status.savePixelColor, 5) == false && param.Alarm[cnt].param.Condition == 1)
 							)
 							flagColorFAlarm = 1;
 						else
@@ -174,20 +174,16 @@ DWORD WINAPI ButtonProcedure(CONST LPVOID lpParam)
 							if (Beep(param.Alarm[cnt].param.BeepFreq, param.Alarm[cnt].param.BeepLen) != 0)
 							{
 								MessageBeep(MB_ICONERROR);
-								timeDelayAlarm = time_ + max(param.Alarm[cnt].param.BeepPeriod, 2000);								
+								timeDelayAlarm = time_ + max(param.Alarm[cnt].param.BeepLen, 2000);
 							}
 							else
-								timeDelayAlarm = time_ + param.Alarm[cnt].param.BeepPeriod;
+							{
+								timeDelayAlarm = time_ + param.Alarm[cnt].param.BeepLen+50;
+							}
 							param.Alarm[cnt].status.timeDelay = time_ + param.Alarm[cnt].param.BeepPeriod;
 							break;
 						}
-					}
-
-					if (time_ + param.Alarm[cnt].param.BeepPeriod < param.Alarm[cnt].status.timeDelay)
-					{
-						param.Alarm[cnt].status.timeDelay = time_ + param.Alarm[cnt].param.BeepPeriod;
-						timeDelayAlarm = time_ + param.Alarm[cnt].param.BeepPeriod;
-					}
+					}					
 				}
 			}
 		}
@@ -221,8 +217,8 @@ DWORD WINAPI ReadScreenProcedure(CONST LPVOID lpParam)
 {
 	HDC dc;
 	UCHAR cnt;
-	COLORREF BuferColor[NUM_BUTTON_FCONDITION];
-	COLORREF BuferColorAlarm[NUM_BUTTON_FCONDITION];
+	COLORREF BuferColor[NUM_BUTTON_FCONDITION] = { 0 };
+	COLORREF BuferColorAlarm[NUM_BUTTON_FCONDITION] = { 0 };
 
 	while (flagReadScreenActive)
 	{
@@ -310,7 +306,6 @@ DWORD StartSetPixelAlarm(UCHAR index)
 UINT ProcedureSetPixelFCondition(struct MOUSE_STATUStypedef MouseStatus)
 {
 	HDC dc;
-	UCHAR cnt;
 	COLORREF BuferColor;
 
 	if (flagMouseActiveScan)
@@ -352,6 +347,20 @@ UINT ProcedureSetPixelFCondition(struct MOUSE_STATUStypedef MouseStatus)
 		MouseHookInterruptProcessing = NULL;
 	}
 	return NULL;
+}
+//------------------------------------------------------------------------------
+bool PixelCompare(COLORREF pixel1, COLORREF pixel2, int variation)
+{
+	if ((GetRValue(pixel1) > GetRValue(pixel2) + variation) || (GetRValue(pixel1) < GetRValue(pixel2) - variation))
+		return false;
+
+	if ((GetGValue(pixel1) > GetGValue(pixel2) + variation) || (GetGValue(pixel1) < GetGValue(pixel2) - variation))
+		return false;
+
+	if ((GetBValue(pixel1) > GetBValue(pixel2) + variation) || (GetBValue(pixel1) < GetBValue(pixel2) - variation))
+		return false;
+
+	return true;
 }
 //------------------------------------------------------------------------------
 UCHAR SendKey(UINT index, UCHAR flagShift, UCHAR flagAlt, UCHAR flagCtrl)

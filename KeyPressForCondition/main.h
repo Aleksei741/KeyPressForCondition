@@ -41,7 +41,7 @@ struct PressButtonFTimer_DType
 	struct
 	{
 		UINT timePeriod;
-		CHAR NumPressCnt;
+		UCHAR NumPressCnt;
 		clock_t timeDelay;
 	} status;
 };
