@@ -28,6 +28,8 @@ BOOL OpenFileDefault(struct UserParameters_DType& param);
 void SaveFileDefault(const struct UserParameters_DType param);
 LPTSTR OpenFileUser(struct UserParameters_DType& param);
 LPTSTR SaveFileUser(const struct UserParameters_DType param);
+BOOL OpenFileWav(TCHAR* path);
+BOOL FileExists(LPCTSTR szPath);
 //******************************************************************************
 // Секция определения макросов
 //******************************************************************************

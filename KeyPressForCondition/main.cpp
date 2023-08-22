@@ -101,13 +101,17 @@ void MainWindAddMenus(HWND hWnd)
 	HMENU RootMenu = CreateMenu();
 
 	HMENU SubMenu = CreateMenu();
+	HMENU SubMenuOption = CreateMenu();
 
 	AppendMenu(SubMenu, MF_POPUP, (UINT_PTR)OnMenuActionOpen, L"Открыть");
 	AppendMenu(SubMenu, MF_POPUP, (UINT_PTR)OnMenuActionSave, L"Сохранить");
 	AppendMenu(SubMenu, MF_SEPARATOR, NULL, NULL);
 	AppendMenu(SubMenu, MF_STRING, OnExitSoftware, L"Выход");
 
+	AppendMenu(SubMenuOption, MF_POPUP, (UINT_PTR)OnMenuActionPathFile, L"wav");
+
 	AppendMenu(RootMenu, MF_POPUP, (UINT_PTR)SubMenu, L"файл");
+	AppendMenu(RootMenu, MF_POPUP, (UINT_PTR)SubMenuOption, L"Настройки");
 
 	SetMenu(hWnd, RootMenu);
 }
@@ -215,6 +219,7 @@ HWND MainWindCreateTabControl(HWND hWnd)
 	TabControlTableContents[TAB_PAGE_ALARM][7] = CreateWindow(WC_STATIC, L"Бип len, мс", WS_VISIBLE | WS_CHILD | ES_CENTER, 535, 5, 80, 40, hwndTabc, NULL, g_hInst, NULL);
 	TabControlTableContents[TAB_PAGE_ALARM][8] = CreateWindow(WC_STATIC, L"Бип freq, Гц", WS_VISIBLE | WS_CHILD | ES_CENTER, 630, 5, 80, 40, hwndTabc, NULL, g_hInst, NULL);
 	TabControlTableContents[TAB_PAGE_ALARM][9] = CreateWindow(WC_STATIC, L"Бип период, мс", WS_VISIBLE | WS_CHILD | ES_CENTER, 720, 5, 80, 40, hwndTabc, NULL, g_hInst, NULL);
+	TabControlTableContents[TAB_PAGE_ALARM][10] = CreateWindow(WC_STATIC, L"wav", WS_VISIBLE | WS_CHILD, 810, 5, 60, 40, hwndTabc, NULL, g_hInst, NULL);
 
 	for (cnt = 0; cnt < NUM_ALARM; cnt++)
 	{
@@ -228,6 +233,7 @@ HWND MainWindCreateTabControl(HWND hWnd)
 		TabControlComponents[TAB_PAGE_ALARM][FIELD_BEEPLEN_ALARM_PAGE(cnt)] = CreateWindow(WC_EDIT, L"300", WS_VISIBLE | WS_CHILD | ES_CENTER | ES_NUMBER, 545, 45 + 30 * cnt, 60, 25, hwndTabc, (HMENU)(ID_BEEPLEN_ALARM_PAGE(cnt)), g_hInst, NULL);
 		TabControlComponents[TAB_PAGE_ALARM][FIELD_BEEPFREQ_ALARM_PAGE(cnt)] = CreateWindow(WC_EDIT, L"1000", WS_VISIBLE | WS_CHILD | ES_CENTER | ES_NUMBER, 640, 45 + 30 * cnt, 60, 25, hwndTabc, (HMENU)(ID_BEEPFREQ_ALARM_PAGE(cnt)), g_hInst, NULL);
 		TabControlComponents[TAB_PAGE_ALARM][FIELD_BEEPPERIOD_ALARM_PAGE(cnt)] = CreateWindow(WC_EDIT, L"5000", WS_VISIBLE | WS_CHILD | ES_CENTER | ES_NUMBER, 730, 45 + 30 * cnt, 60, 25, hwndTabc, (HMENU)(ID_BEEPPERIOD_ALARM_PAGE(cnt)), g_hInst, NULL);
+		TabControlComponents[TAB_PAGE_ALARM][FIELD_SOUND_ALARM_PAGE(cnt)] = CreateWindow(WC_BUTTON, L"", WS_VISIBLE | WS_CHILD | BS_AUTOCHECKBOX, 817, 45 + 30 * cnt, 25, 25, hwndTabc, (HMENU)(ID_SOUND_ALARM_PAGE), g_hInst, NULL);
 	}
 
 	SetWindowLongPtr(hwndTabc, GWLP_WNDPROC, (LONG_PTR)ChildWndProc);
@@ -405,9 +411,10 @@ void ReadParametersFGUI(void)
 		{
 			param.Alarm[cnt].param.Activate = SendMessage(TabControlComponents[TAB_PAGE_ALARM][FIELD_ACTIVE_ALARM_PAGE(cnt)], BM_GETCHECK, 0, 0);
 			param.Alarm[cnt].param.Condition = SendMessage(TabControlComponents[TAB_PAGE_ALARM][FIELD_CONDITION_ALARM_PAGE(cnt)], CB_GETCURSEL, 0, 0);
-			//param.Alarm[cnt].param.BeepLen = GetDlgItemInt(hwndTabc, ID_BEEPLEN_ALARM_PAGE(cnt), NULL, false);
-			//param.Alarm[cnt].param.BeepFreq = GetDlgItemInt(hwndTabc, ID_BEEPFREQ_ALARM_PAGE(cnt), NULL, false);
-			//param.Alarm[cnt].param.BeepPeriod = GetDlgItemInt(hwndTabc, ID_BEEPPERIOD_ALARM_PAGE(cnt), NULL, false);
+			param.Alarm[cnt].param.BeepLen = GetDlgItemInt(hwndTabc, ID_BEEPLEN_ALARM_PAGE(cnt), NULL, false);
+			param.Alarm[cnt].param.BeepFreq = GetDlgItemInt(hwndTabc, ID_BEEPFREQ_ALARM_PAGE(cnt), NULL, false);
+			param.Alarm[cnt].param.BeepPeriod = GetDlgItemInt(hwndTabc, ID_BEEPPERIOD_ALARM_PAGE(cnt), NULL, false);
+			param.Alarm[cnt].param.fSound = SendMessage(TabControlComponents[TAB_PAGE_ALARM][FIELD_SOUND_ALARM_PAGE(cnt)], BM_GETCHECK, 0, 0);
 		}
 	}
 }
@@ -455,6 +462,7 @@ void WriteParametersFGUI(CHAR flagWriteGUI)
 			SetDlgItemInt(hwndTabc, ID_BEEPLEN_ALARM_PAGE(cnt), param.Alarm[cnt].param.BeepLen, false);
 			SetDlgItemInt(hwndTabc, ID_BEEPFREQ_ALARM_PAGE(cnt), param.Alarm[cnt].param.BeepFreq, false);
 			SetDlgItemInt(hwndTabc, ID_BEEPPERIOD_ALARM_PAGE(cnt), param.Alarm[cnt].param.BeepPeriod, false);
+			SendMessage(TabControlComponents[TAB_PAGE_ALARM][FIELD_SOUND_ALARM_PAGE(cnt)], BM_SETCHECK, param.Alarm[cnt].param.fSound, 0);
 		}
 	}
 	else
@@ -536,6 +544,16 @@ void SetGUICheckBoxUSB(CHAR status)
 	param.USBDev = status;
 }
 //------------------------------------------------------------------------------
+void SetGUICheckBoxSound(UCHAR index, BOOL FileStatus)
+{
+	EnableWindow(TabControlComponents[TAB_PAGE_ALARM][FIELD_SOUND_ALARM_PAGE(index)], FileStatus);
+
+	if(FileStatus)
+		SendMessage(TabControlComponents[TAB_PAGE_ALARM][FIELD_SOUND_ALARM_PAGE(index)], BM_SETCHECK, param.Alarm[index].param.fSound, 0);
+	else
+		SendMessage(TabControlComponents[TAB_PAGE_ALARM][FIELD_SOUND_ALARM_PAGE(index)], BM_SETCHECK, 0, 0);
+}
+//------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
 LRESULT CALLBACK SoftwareMainProcedure(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp)
@@ -548,6 +566,9 @@ LRESULT CALLBACK SoftwareMainProcedure(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp
 	case WM_COMMAND:
 		switch (wp)
 		{
+		case OnMenuActionPathFile:
+			CreateWindow_OptionPathWav(g_hInst, hwndMainWindow);
+			break;
 		case SearchWindowHandlesButtonClik:
 			CreateWindow_SearchWindowHandles(g_hInst, hwndMainWindow);
 			break;
@@ -799,6 +820,12 @@ LRESULT CALLBACK ChildWndProc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp)
 		//Будильники
 		//Активность
 		if (LOWORD(wp) == ID_ACTIVE_ALARM_PAGE)
+		{
+			if (HIWORD(wp) == 0)
+				ReadParametersFGUI();
+		}
+		//Sound
+		if (LOWORD(wp) == ID_SOUND_ALARM_PAGE)
 		{
 			if (HIWORD(wp) == 0)
 				ReadParametersFGUI();

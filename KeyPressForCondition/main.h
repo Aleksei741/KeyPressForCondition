@@ -15,6 +15,7 @@
 #include "WindowHandles.h"
 #include "ButtonsProcess.h"
 #include "USB_procedure.h"
+#include "WindowOptionPathWav.h"
 //******************************************************************************
 // Секция определения констант
 //******************************************************************************
@@ -32,7 +33,7 @@ struct PressButtonFTimer_DType
 		CHAR Ctrl;
 		CHAR Alt;
 		CHAR Shift;
-		CHAR indexButton;
+		UCHAR indexButton;
 		UINT PeriodPress;
 		UINT NumPress;
 		UINT DelayAfterPress;
@@ -54,7 +55,7 @@ struct ParametersPressButtonFCondition_DType
 		CHAR Ctrl;
 		CHAR Alt;
 		CHAR Shift;
-		CHAR indexButton;
+		UCHAR indexButton;
 		CHAR Condition;
 		CHAR NumPress;
 		UINT PeriodPress;
@@ -82,6 +83,8 @@ struct ParametersAlarm_DType
 		DWORD BeepLen;
 		DWORD BeepFreq;
 		DWORD BeepPeriod;
+		TCHAR PathSound[128];
+		BOOL fSound;
 	} param;
 
 	struct
@@ -104,12 +107,14 @@ struct UserParameters_DType
 	UCHAR Active;
 	UCHAR USBDev;
 	UCHAR flagMarkPixel;
+	UCHAR flagChekPath;
 };
 //******************************************************************************
 // Секция определения глобальных переменных
 //******************************************************************************
-//extern UserParameters_DType param;
+extern UserParameters_DType param;
 extern HWND hWndTargetWindow;
+extern HINSTANCE g_hInst;
 //******************************************************************************
 // Секция прототипов глобальных функций
 //******************************************************************************
@@ -117,6 +122,7 @@ void HistoryKeyProc(TCHAR* szKey);
 void SetGUICurrentPixelColor(UCHAR index, COLORREF color);
 void SetGUIParamPixelColorAndPosition(UCHAR index, COLORREF color, UINT X, UINT Y);
 void SetGUICheckBoxUSB(CHAR status);
+void SetGUICheckBoxSound(UCHAR index, BOOL FileStatus);
 //******************************************************************************
 // Секция определения макросов
 //******************************************************************************

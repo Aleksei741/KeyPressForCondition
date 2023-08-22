@@ -43,7 +43,7 @@ BOOL OpenFileDefault(UserParameters_DType& param)
 	return TRUE;
 }
 //------------------------------------------------------------------------------
-//Загрузка настроек по умолчанию
+//Сохранение настроек по умолчанию
 void SaveFileDefault(const UserParameters_DType param)
 {
 	TCHAR szFileName[MAX_PATH], szPath[MAX_PATH];
@@ -88,7 +88,7 @@ LPTSTR OpenFileUser(UserParameters_DType &param)
 	return lpofn.lpstrFile;
 }
 //------------------------------------------------------------------------------
-//Загрузка пользовательских настроек
+//Сохранение пользовательских настроек
 LPTSTR SaveFileUser(const UserParameters_DType param)
 {
 	OPENFILENAME lpofn;
@@ -423,6 +423,30 @@ BOOL LoadParamsFFile(UserParameters_DType& param, LPWSTR Path)
 			param.Alarm[cnt].param.BeepPeriod = retParam;
 		else
 			ret = FALSE;
+
+		//Путь к файлу
+		StringCchPrintf(szBuf, sizeof(szBuf) / sizeof(szBuf[0]), L"PathSound%d\0", cnt + 1);
+		retParam = GetPrivateProfileString(
+			L"Alarm",
+			szBuf,
+			L"None",
+			param.Alarm[cnt].param.PathSound,
+			128,
+			Path
+		);
+
+		//Период подачи звка
+		StringCchPrintf(szBuf, sizeof(szBuf) / sizeof(szBuf[0]), L"fSound%d\0", cnt + 1);
+		retParam = GetPrivateProfileInt(
+			L"Alarm",
+			szBuf,
+			DEFAULT_VALUE_GET_FILE,
+			Path
+		);
+		if (retParam != DEFAULT_VALUE_GET_FILE)
+			param.Alarm[cnt].param.fSound = retParam;
+		else
+			ret = FALSE;
 	}
 
 	return ret;
@@ -666,9 +690,60 @@ void SaveParamsFFile(const UserParameters_DType param,const LPWSTR Path)
 			data,
 			Path
 		);
+
+		//Звук
+		StringCchPrintf(szBuf, sizeof(szBuf) / sizeof(szBuf[0]), L"PathSound%d\0", cnt + 1);
+		ret = WritePrivateProfileString(
+			L"Alarm",
+			szBuf,
+			param.Alarm[cnt].param.PathSound,
+			Path
+		);
+
+		//fSound
+		StringCchPrintf(szBuf, sizeof(szBuf) / sizeof(szBuf[0]), L"fSound%d\0", cnt + 1);
+		StringCchPrintf(data, sizeof(data) / sizeof(data[0]), L"%d\0", param.Alarm[cnt].param.fSound);
+		ret = WritePrivateProfileString(
+			L"Alarm",
+			szBuf,
+			data,
+			Path
+		);
 	}
 }
 //------------------------------------------------------------------------------
+//Загрузка настроек по умолчанию
+BOOL OpenFileWav(TCHAR* path)
+{
+	OPENFILENAME lpofn;
+	TCHAR szFile[125];
+	CHAR openFileStatus = 0;
+
+	ZeroMemory(&lpofn, sizeof(lpofn));
+	lpofn.lStructSize = sizeof(lpofn);
+	lpofn.hwndOwner = NULL;
+	lpofn.lpstrFile = szFile;
+	lpofn.lpstrFile[0] = '\0';
+	lpofn.nMaxFile = sizeof(szFile);
+	lpofn.lpstrFilter = L".wav";
+	lpofn.nFilterIndex = 0;
+	lpofn.lpstrFileTitle = NULL;
+	lpofn.nMaxFileTitle = 0;
+	lpofn.lpstrInitialDir = NULL;
+	lpofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
+
+	openFileStatus = GetOpenFileName(&lpofn);
+
+	StringCchPrintf(path, 128, L"%s", lpofn.lpstrFile);
+
+	if (openFileStatus != 0)
+	{
+		return TRUE;
+	}
+
+	return NULL;
+}
+//------------------------------------------------------------------------------ 
 //Отделяет имя файла от полного пути к файлу.
 LPTSTR ExtractFilePath(LPCTSTR FileName, LPTSTR buf)
 {
@@ -680,5 +755,12 @@ LPTSTR ExtractFilePath(LPCTSTR FileName, LPTSTR buf)
 	}
 	lstrcpyn(buf, FileName, i + 2);
 	return buf;
+}
+//------------------------------------------------------------------------------ 
+BOOL FileExists(LPCTSTR szPath)
+{
+	DWORD dwAttrib = GetFileAttributes(szPath);
+	return (dwAttrib != INVALID_FILE_ATTRIBUTES &&
+		!(dwAttrib & FILE_ATTRIBUTE_DIRECTORY));
 }
 //------------------------------------------------------------------------------ 

@@ -70,6 +70,9 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <IncludePath>$(LocalDebuggerWorkingDirectory);$(IncludePath)</IncludePath>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
@@ -131,6 +134,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Button.h" />
     <ClInclude Include="ButtonsProcess.h" />
     <ClInclude Include="File.h" />
     <ClInclude Include="main.h" />
@@ -141,8 +145,10 @@
     <ClInclude Include="resource.h" />
     <ClInclude Include="USB_procedure.h" />
     <ClInclude Include="WindowHandles.h" />
+    <ClInclude Include="WindowOptionPathWav.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Button.cpp" />
     <ClCompile Include="ButtonsProcess.cpp" />
     <ClCompile Include="File.cpp" />
     <ClCompile Include="main.cpp" />
@@ -151,6 +157,7 @@
     <ClCompile Include="MonitorScreenOperation.cpp" />
     <ClCompile Include="USB_procedure.cpp" />
     <ClCompile Include="WindowHandles.cpp" />
+    <ClCompile Include="WindowOptionPathWav.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="KeyPressForCondition.rc" />

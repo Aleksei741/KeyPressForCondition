@@ -6,23 +6,25 @@
 //******************************************************************************
 #include <math.h>
 #include <chrono>
+#include <iostream>  
+#include <Windows.h>
+#include <windowsx.h>
+#include <strsafe.h>
+#include <Winbase.h>
+#include "Shlwapi.h"
+#pragma comment(lib,"Winmm.lib")
+#pragma comment( lib, "shlwapi.lib")
 
 #include "main.h"
 #include "USB_procedure.h"
 #include "RandomF.h"
 #include "MonitorScreenOperation.h"
 #include "MouseHook.h"
+#include "Button.h"
 //******************************************************************************
 // Секция определения констант
 //******************************************************************************
-#define LEFT_CTRL	(1 << 0)
-#define LEFT_SHIFT	(1 << 1)
-#define LEFT_ALT	(1 << 2)
-#define LEFT_GUI	(1 << 3)	
-#define RIGHT_CTRL	(1 << 4)
-#define RIGHT_SHIFT (1 << 5)
-#define RIGHT_tALT	(1 << 6)
-#define RIGHT_GUI	(1 << 7)	
+
 //******************************************************************************
 // Секция определения типов
 //******************************************************************************
@@ -33,6 +35,11 @@ struct StatusPixel_DType
 	COLORREF* curretPixelColor;
 	DWORD* X;
 	DWORD* Y;
+};
+
+enum BType_DType {
+	TYPE_BUTTON_FTIMER,
+	TYPE_BUTTON_FCONDITION,
 };
 //******************************************************************************
 // Секция определения глобальных переменных

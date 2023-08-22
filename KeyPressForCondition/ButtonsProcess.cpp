@@ -17,12 +17,11 @@ void (*CallbackIndicatePixel)(UCHAR index, COLORREF Color, UINT X, UINT Y);
 //------------------------------------------------------------------------------
 HANDLE hTreadButtonsProcedure;
 
-HANDLE hMutexReadScreen;
-HANDLE hTreadReadScreen;
+
 
 HANDLE hTreadMouseHook;
 
-UCHAR flagReadScreenActive;
+
 UCHAR GUIButtonIndex = 0;
 
 BOOL flagMouse;
@@ -34,33 +33,24 @@ StatusPixel_DType StatusPixel;
 // Секция прототипов локальных функций
 //******************************************************************************
 DWORD WINAPI ButtonProcedure(CONST LPVOID lpParam);
-DWORD WINAPI ReadScreenProcedure(CONST LPVOID lpParam);
-DWORD WINAPI MouseHookProcedure(CONST LPVOID lpParam);
 UINT ProcedureSetPixelFCondition(struct MOUSE_STATUStypedef MouseStatus);
-UCHAR KeyIndexFString(UINT index, TCHAR* szResult);
-UCHAR KeyIndexFUSBKeyCode(UINT index);
-UCHAR SendKey(UINT index, UCHAR flagShift, UCHAR flagAlt, UCHAR flagCtrl);
-bool PixelCompare(COLORREF pixel1, COLORREF pixel2, int variation);
+BOOL SoundFileCheck(void);
+BOOL CheckButtonDublicate(enum BType_DType BType, UCHAR index, UCHAR indexButton, clock_t timeDelay);
 //******************************************************************************
 // Секция описания функций
 //******************************************************************************
 void ButtonProcessStart(void)
-{
-	hMutexReadScreen = CreateMutex(
-		NULL,              // default security attributes
-		FALSE,             // initially not owned
-		NULL);             // unnamed mutex
+{	
+	ReadScreenStart();
+	StartEKey();
 	hTreadButtonsProcedure = CreateThread(NULL, NULL, ButtonProcedure, NULL, NULL, NULL);
-	flagReadScreenActive = 1;
-	hTreadReadScreen = CreateThread(NULL, NULL, ReadScreenProcedure, NULL, NULL, NULL);
 }
 //------------------------------------------------------------------------------
 void ButtonProcessStop(void)
 {
 	if (hTreadButtonsProcedure) CloseHandle(hTreadButtonsProcedure);
-	ReleaseMutex(hMutexReadScreen);
-	if (hMutexReadScreen) CloseHandle(hMutexReadScreen);
-	flagReadScreenActive = 0;
+	ReadScreenStop();
+	StopEKey();
 	DelMouseHook(NULL, NULL, NULL, NULL);
 }
 //------------------------------------------------------------------------------
@@ -99,6 +89,7 @@ DWORD WINAPI ButtonProcedure(CONST LPVOID lpParam)
 							param.ButtonFTimer[cnt].status.NumPressCnt++;
 							param.ButtonFTimer[cnt].status.timeDelay = time_ + param.ButtonFTimer[cnt].param.PeriodPress + RangedRand(0, 100);
 							timeDelay = time_ + param.ButtonFTimer[cnt].param.DelayAfterPress + RangedRand(0, 80);
+							CheckButtonDublicate(TYPE_BUTTON_FTIMER, cnt, param.ButtonFTimer[cnt].param.indexButton, param.ButtonFTimer[cnt].status.timeDelay);
 							SendKey(param.ButtonFTimer[cnt].param.indexButton, 
 								param.ButtonFTimer[cnt].param.Shift, 
 								param.ButtonFTimer[cnt].param.Alt, 
@@ -138,6 +129,7 @@ DWORD WINAPI ButtonProcedure(CONST LPVOID lpParam)
 						{
 							param.ButtonFCondition[cnt].status.timeDelay = time_ + param.ButtonFCondition[cnt].param.PeriodPress + RangedRand(0, 100);
 							timeDelay = time_ + param.ButtonFCondition[cnt].param.DelayAfterPress + RangedRand(0, 80);
+							CheckButtonDublicate(TYPE_BUTTON_FCONDITION, cnt, param.ButtonFCondition[cnt].param.indexButton, param.ButtonFCondition[cnt].status.timeDelay);
 							SendKey(param.ButtonFCondition[cnt].param.indexButton, 
 								param.ButtonFCondition[cnt].param.Shift,
 								param.ButtonFCondition[cnt].param.Alt,
@@ -171,7 +163,11 @@ DWORD WINAPI ButtonProcedure(CONST LPVOID lpParam)
 
 						if (flagColorFAlarm)
 						{
-							if (Beep(param.Alarm[cnt].param.BeepFreq, param.Alarm[cnt].param.BeepLen) != 0)
+							if (param.Alarm[cnt].param.fSound)
+							{
+								PlaySound(param.Alarm[cnt].param.PathSound, g_hInst, SND_NOSTOP | SND_ASYNC);
+							}
+							else if (Beep(param.Alarm[cnt].param.BeepFreq, param.Alarm[cnt].param.BeepLen) != 0)
 							{
 								MessageBeep(MB_ICONERROR);
 								timeDelayAlarm = time_ + max(param.Alarm[cnt].param.BeepLen, 2000);
@@ -209,68 +205,9 @@ DWORD WINAPI ButtonProcedure(CONST LPVOID lpParam)
 			timeDelay = time_ + 500;
 			timeDelayAlarm = time_ + 500;
 		}
+		SoundFileCheck();
 		Sleep(1);
 	}
-}
-//------------------------------------------------------------------------------
-DWORD WINAPI ReadScreenProcedure(CONST LPVOID lpParam)
-{
-	HDC dc;
-	UCHAR cnt;
-	COLORREF BuferColor[NUM_BUTTON_FCONDITION] = { 0 };
-	COLORREF BuferColorAlarm[NUM_BUTTON_FCONDITION] = { 0 };
-
-	while (flagReadScreenActive)
-	{
-		if (param.Active)
-		{
-			dc = GetDC(NULL);
-			for (cnt = 0; cnt < NUM_BUTTON_FCONDITION; cnt++)
-			{
-				if (param.ButtonFCondition[cnt].param.Activate && param.ButtonFCondition[cnt].status.flagPixelSet)
-				{
-					BuferColor[cnt] = GetPixel(dc, param.ButtonFCondition[cnt].status.X, param.ButtonFCondition[cnt].status.Y);
-					if(param.flagMarkPixel)
-						MarkPixel(dc, param.ButtonFCondition[cnt].status.X, param.ButtonFCondition[cnt].status.Y);
-					SetGUICurrentPixelColor(cnt, BuferColor[cnt]);
-				}
-			}
-
-			for (cnt = 0; cnt < NUM_ALARM; cnt++)
-			{
-				if (param.Alarm[cnt].param.Activate && param.Alarm[cnt].status.flagPixelSet)
-				{
-					BuferColorAlarm[cnt] = GetPixel(dc, param.Alarm[cnt].status.X, param.Alarm[cnt].status.Y);
-					if (param.flagMarkPixel)
-						MarkPixel(dc, param.Alarm[cnt].status.X, param.Alarm[cnt].status.Y);
-					SetGUICurrentPixelColor(cnt + NUM_BUTTON_FCONDITION, BuferColorAlarm[cnt]);
-				}
-			}
-			ReleaseDC(NULL, dc);
-
-			WaitForSingleObject(hMutexReadScreen, INFINITE);
-			for (cnt = 0; cnt < NUM_BUTTON_FCONDITION; cnt++)
-			{
-				if (param.ButtonFCondition[cnt].param.Activate)
-				{
-					param.ButtonFCondition[cnt].status.curretPixelColor = BuferColor[cnt];
-				}
-			}
-
-			for (cnt = 0; cnt < NUM_ALARM; cnt++)
-			{
-				if (param.Alarm[cnt].param.Activate)
-				{
-					param.Alarm[cnt].status.curretPixelColor = BuferColorAlarm[cnt];
-				}
-			}
-			ReleaseMutex(hMutexReadScreen);
-		}
-		Sleep(60);
-	}
-
-	if (hTreadReadScreen) CloseHandle(hTreadReadScreen);
-	return NULL;
 }
 //------------------------------------------------------------------------------
 DWORD StartSetPixelFCondition(UCHAR index)
@@ -349,243 +286,53 @@ UINT ProcedureSetPixelFCondition(struct MOUSE_STATUStypedef MouseStatus)
 	return NULL;
 }
 //------------------------------------------------------------------------------
-bool PixelCompare(COLORREF pixel1, COLORREF pixel2, int variation)
+BOOL SoundFileCheck(void)
 {
-	if ((GetRValue(pixel1) > GetRValue(pixel2) + variation) || (GetRValue(pixel1) < GetRValue(pixel2) - variation))
-		return false;
+	static clock_t timeChekFile = 0;
+	UCHAR cnt;
+	BOOL ret;
 
-	if ((GetGValue(pixel1) > GetGValue(pixel2) + variation) || (GetGValue(pixel1) < GetGValue(pixel2) - variation))
-		return false;
-
-	if ((GetBValue(pixel1) > GetBValue(pixel2) + variation) || (GetBValue(pixel1) < GetBValue(pixel2) - variation))
-		return false;
-
-	return true;
-}
-//------------------------------------------------------------------------------
-UCHAR SendKey(UINT index, UCHAR flagShift, UCHAR flagAlt, UCHAR flagCtrl)
-{
-	UCHAR ModifiedKey = 0;
-	UCHAR CodeKey;
-
-	if (flagShift)
-		ModifiedKey = LEFT_SHIFT;
-
-	if (flagAlt)
-		ModifiedKey = LEFT_ALT;
-
-	if (flagCtrl)
-		ModifiedKey = LEFT_CTRL;
-
-	if (param.USBDev)
+	if (timeChekFile < clock() || param.flagChekPath)
 	{
-		CodeKey = KeyIndexFUSBKeyCode(index);
-		USBSendMassage(CodeKey, 1, ModifiedKey);
-		//Sleep(RangedRand(100, 150));
+		timeChekFile = clock() + 5000;
+		param.flagChekPath = FALSE;
+
+		for (cnt = 0; cnt < sizeof(param.Alarm) / sizeof(param.Alarm[0]); cnt++)
+		{
+			ret = FileExists(param.Alarm[cnt].param.PathSound);
+			if (!ret)	param.Alarm[cnt].param.fSound = FALSE;
+			SetGUICheckBoxSound(cnt, ret);
+		}
 	}
 
-	return NULL;
+	return TRUE;
 }
 //------------------------------------------------------------------------------
-UCHAR KeyIndexFString(UINT index, TCHAR * szResult)
+BOOL CheckButtonDublicate(enum BType_DType BType, UCHAR index, UCHAR indexButton, clock_t timeDelay)
 {
-	//TCHAR szResult[5] = { '\0' };
 	UCHAR cnt;
 
-	//L0 - L9
-	for (cnt = 0; cnt < 10; cnt++)
-		if (index == 0 + cnt)
-			StringCchPrintf(szResult, 5, L"L%d\0", cnt);
+	for (cnt = 0; cnt < NUM_BUTTON_FTIMER; cnt++)
+	{
+		if (!(BType == TYPE_BUTTON_FTIMER && cnt == index))
+		{
+			if (indexButton == param.ButtonFTimer[cnt].param.indexButton)
+			{
+				param.ButtonFTimer[cnt].status.timeDelay = timeDelay;
+			}
+		}
+	}
 
-	// /*-+
-	if (index == 10)
-		StringCchPrintf(szResult, 5, L"%s\0", L"L/");
-	else if (index == 11)
-		StringCchPrintf(szResult, 5, L"%s\0", L"L*");
-	else if (index == 12)
-		StringCchPrintf(szResult, 5, L"%s\0", L"L-");
-	else if (index == 13)
-		StringCchPrintf(szResult, 5, L"%s\0", L"L+");
+	for (cnt = 0; cnt < NUM_BUTTON_FCONDITION; cnt++)
+	{
+		if (!(BType == TYPE_BUTTON_FCONDITION && cnt == index))
+		{
+			if (indexButton == param.ButtonFCondition[cnt].param.indexButton)
+			{
+				param.ButtonFCondition[cnt].status.timeDelay = timeDelay;
+			}
+		}
+	}
 
-	for (cnt = 0; cnt < 10; cnt++)
-		if (index == 14 + cnt)
-			StringCchPrintf(szResult, 5, L"%d\0", cnt);
-
-	if (index == 24)
-		StringCchPrintf(szResult, 5, L"-\0");
-
-	if (index == 25)
-		StringCchPrintf(szResult, 5, L"=\0");
-
-	for (cnt = 0; cnt < 12; cnt++)
-		if (index == 26 + cnt)
-			StringCchPrintf(szResult, 5, L"F%d\0", cnt+1);
-
-	if (index == 38)
-		StringCchPrintf(szResult, 5, L"%c\0", L'A');
-	else if (index == 39)
-		StringCchPrintf(szResult, 5, L"%c\0", L'B');
-	else if (index == 40)
-		StringCchPrintf(szResult, 5, L"%c\0", L'C');
-	else if (index == 41)
-		StringCchPrintf(szResult, 5, L"%c\0", L'D');
-	else if (index == 42)
-		StringCchPrintf(szResult, 5, L"%c\0", L'E');
-	else if (index == 43)
-		StringCchPrintf(szResult, 5, L"%c\0", L'F');
-	else if (index == 44)
-		StringCchPrintf(szResult, 5, L"%c\0", L'G');
-	else if (index == 45)
-		StringCchPrintf(szResult, 5, L"%c\0", L'H');
-	else if (index == 46)
-		StringCchPrintf(szResult, 5, L"%c\0", L'I');
-	else if (index == 47)
-		StringCchPrintf(szResult, 5, L"%c\0", L'G');
-	else if (index == 48)
-		StringCchPrintf(szResult, 5, L"%c\0", L'K');
-	else if (index == 49)
-		StringCchPrintf(szResult, 5, L"%c\0", L'L');
-	else if (index == 50)
-		StringCchPrintf(szResult, 5, L"%c\0", L'M');
-	else if (index == 51)
-		StringCchPrintf(szResult, 5, L"%c\0", L'N');
-	else if (index == 52)
-		StringCchPrintf(szResult, 5, L"%c\0", L'O');
-	else if (index == 53)
-		StringCchPrintf(szResult, 5, L"%c\0", L'P');
-	else if (index == 54)
-		StringCchPrintf(szResult, 5, L"%c\0", L'Q');
-	else if (index == 55)
-		StringCchPrintf(szResult, 5, L"%c\0", L'R');
-	else if (index == 56)
-		StringCchPrintf(szResult, 5, L"%c\0", L'S');
-	else if (index == 57)
-		StringCchPrintf(szResult, 5, L"%c\0", L'T');
-	else if (index == 58)
-		StringCchPrintf(szResult, 5, L"%c\0", L'U');
-	else if (index == 59)
-		StringCchPrintf(szResult, 5, L"%c\0", L'V');
-	else if (index == 60)
-		StringCchPrintf(szResult, 5, L"%c\0", L'W');
-	else if (index == 61)
-		StringCchPrintf(szResult, 5, L"%c\0", L'X');
-	else if (index == 62)
-		StringCchPrintf(szResult, 5, L"%c\0", L'Y');
-	else if (index == 63)
-		StringCchPrintf(szResult, 5, L"%c\0", L'Z');
-	else if (index == 64)
-		StringCchPrintf(szResult, 5, L"%s\0", L"ESC");
-	else if (index == 65)
-		StringCchPrintf(szResult, 5, L"%s\0", L"TAB");
-	else if (index == 66)
-		StringCchPrintf(szResult, 7, L"%s\0", L"Space");
-	else if (index == 67)
-		StringCchPrintf(szResult, 5, L"%c\0", L'~');
-	else if (index == 68)
-		StringCchPrintf(szResult, 10, L"%s\0", L"Backspace");
-	else if (index == 69)
-		StringCchPrintf(szResult, 7, L"%s\0", L"Enter");
-
-	return 0;
+	return TRUE;
 }
-//------------------------------------------------------------------------------
-UCHAR KeyIndexFUSBKeyCode(UINT index)
-{
-	//TCHAR szResult[5] = { '\0' };
-	UCHAR cnt;
-
-	//L0
-	if (index == 0)
-		return 0x62;
-
-	//L1 - L9
-	for (cnt = 0; cnt < 9; cnt++)
-		if (index == 1 + cnt)
-			return 0x59 + cnt;
-
-	// /
-	if (index == 10)
-		return 0x54;
-
-	// *
-	if (index == 11)
-		return 0x55;
-
-	// -
-	if (index == 12)
-		return 0x56;
-
-	// +
-	if (index == 13)
-		return 0x57;
-
-	//0
-	if (index == 14)
-		return 0x27;
-
-	//1-9	
-	for (cnt = 0; cnt < 9; cnt++)
-	{
-		if (index == 15 + cnt)
-		{
-			return 0x1e + cnt;
-		}
-	}
-
-	//-
-	if (index == 24)
-	{
-		return 0x2d;
-	}
-
-	//=
-	if (index == 25)
-	{
-		return 0x2e;
-	}
-
-	//F1-F12
-	for (cnt = 0; cnt < 12; cnt++)
-	{
-		if (index == 26 + cnt)
-		{
-			return 0x3A + cnt;
-		}
-	}
-
-	//A-Z
-	for (cnt = 0; cnt < 26; cnt++)
-	{
-		if (index == 38 + cnt)
-		{
-			return 0x04 + cnt;
-		}
-	}
-
-	//ESC
-	if (index == 64)
-		return 0x29;
-
-	//TAB
-	if (index == 65)
-		return 0x2B;
-
-	//Space
-	if (index == 66)
-		return 0x2C;
-
-	//~
-	if (index == 67)
-		return 0x35;
-
-	//Backspace
-	if (index == 68)
-		return 0x2A;
-
-	//Enter
-	if (index == 69)
-		return 0x28;
-
-	return 0;
-}
-//------------------------------------------------------------------------------
