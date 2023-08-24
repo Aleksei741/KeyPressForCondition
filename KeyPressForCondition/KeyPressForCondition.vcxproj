@@ -137,6 +137,7 @@
     <ClInclude Include="Button.h" />
     <ClInclude Include="ButtonsProcess.h" />
     <ClInclude Include="File.h" />
+    <ClInclude Include="KeyHook.h" />
     <ClInclude Include="main.h" />
     <ClInclude Include="MainDefinition.h" />
     <ClInclude Include="MouseHook.h" />
@@ -145,18 +146,21 @@
     <ClInclude Include="resource.h" />
     <ClInclude Include="USB_procedure.h" />
     <ClInclude Include="WindowHandles.h" />
+    <ClInclude Include="WindowOption.h" />
     <ClInclude Include="WindowOptionPathWav.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Button.cpp" />
     <ClCompile Include="ButtonsProcess.cpp" />
     <ClCompile Include="File.cpp" />
+    <ClCompile Include="KeyHook.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MouseHook.cpp" />
     <ClCompile Include="RandomF.cpp" />
     <ClCompile Include="MonitorScreenOperation.cpp" />
     <ClCompile Include="USB_procedure.cpp" />
     <ClCompile Include="WindowHandles.cpp" />
+    <ClCompile Include="WindowOption.cpp" />
     <ClCompile Include="WindowOptionPathWav.cpp" />
   </ItemGroup>
   <ItemGroup>

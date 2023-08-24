@@ -143,6 +143,19 @@ BOOL LoadParamsFFile(UserParameters_DType& param, LPWSTR Path)
 		else
 			ret = FALSE;
 
+		//Индекс окна
+		StringCchPrintf(szBuf, sizeof(szBuf) / sizeof(szBuf[0]), L"indexWindow%d\0", cnt + 1);
+		retParam = GetPrivateProfileInt(
+			L"KeyFTimer",
+			szBuf,
+			DEFAULT_VALUE_GET_FILE,
+			Path
+		);
+		if (retParam != DEFAULT_VALUE_GET_FILE)
+			param.ButtonFTimer[cnt].param.indexWindow = retParam;
+		else
+			ret = FALSE;
+
 		//Кнопка
 		StringCchPrintf(szBuf, sizeof(szBuf) / sizeof(szBuf[0]), L"indexButton%d\0", cnt + 1);
 		retParam = GetPrivateProfileInt(
@@ -449,6 +462,71 @@ BOOL LoadParamsFFile(UserParameters_DType& param, LPWSTR Path)
 			ret = FALSE;
 	}
 
+	//Флаг эмуляции клавы
+	StringCchPrintf(szBuf, sizeof(szBuf) / sizeof(szBuf[0]), L"flagEmulationKey\0");
+	retParam = GetPrivateProfileInt(
+		L"Option",
+		szBuf,
+		DEFAULT_VALUE_GET_FILE,
+		Path
+	);
+	if (retParam != DEFAULT_VALUE_GET_FILE)
+		param.Option.flagEmulationKey = retParam;
+	else
+		ret = FALSE;
+
+	//Маркировать пиксели
+	StringCchPrintf(szBuf, sizeof(szBuf) / sizeof(szBuf[0]), L"flagMarkPixel\0");
+	retParam = GetPrivateProfileInt(
+		L"Option",
+		szBuf,
+		DEFAULT_VALUE_GET_FILE,
+		Path
+	);
+	if (retParam != DEFAULT_VALUE_GET_FILE)
+		param.Option.flagMarkPixel = retParam;
+	else
+		ret = FALSE;
+
+	//Мультиокна
+	StringCchPrintf(szBuf, sizeof(szBuf) / sizeof(szBuf[0]), L"flagMultiWindow\0");
+	retParam = GetPrivateProfileInt(
+		L"Option",
+		szBuf,
+		DEFAULT_VALUE_GET_FILE,
+		Path
+	);
+	if (retParam != DEFAULT_VALUE_GET_FILE)
+		param.Option.flagMultiWindow = retParam;
+	else
+		ret = FALSE;
+
+	//Пауза при Alt+Tab
+	StringCchPrintf(szBuf, sizeof(szBuf) / sizeof(szBuf[0]), L"AltTabPause\0");
+	retParam = GetPrivateProfileInt(
+		L"Option",
+		szBuf,
+		DEFAULT_VALUE_GET_FILE,
+		Path
+	);
+	if (retParam != DEFAULT_VALUE_GET_FILE)
+		param.Option.AltTabPause = retParam;
+	else
+		ret = FALSE;
+
+	//Кнопка Start Stop
+	StringCchPrintf(szBuf, sizeof(szBuf) / sizeof(szBuf[0]), L"KeyStartStop\0");
+	retParam = GetPrivateProfileInt(
+		L"Option",
+		szBuf,
+		DEFAULT_VALUE_GET_FILE,
+		Path
+	);
+	if (retParam != DEFAULT_VALUE_GET_FILE)
+		param.Option.KeyStartStop = retParam;
+	else
+		ret = FALSE;
+
 	return ret;
 }
 //------------------------------------------------------------------------------
@@ -466,6 +544,16 @@ void SaveParamsFFile(const UserParameters_DType param,const LPWSTR Path)
 		//Активность
 		StringCchPrintf(szBuf, sizeof(szBuf) / sizeof(szBuf[0]), L"Activate%d\0", cnt + 1);
 		StringCchPrintf(data, sizeof(data) / sizeof(data[0]), L"%d\0", param.ButtonFTimer[cnt].param.Activate);
+		ret = WritePrivateProfileString(
+			L"KeyFTimer",
+			szBuf,
+			data,
+			Path
+		);
+
+		//Индекс окна
+		StringCchPrintf(szBuf, sizeof(szBuf) / sizeof(szBuf[0]), L"indexWindow%d\0", cnt + 1);
+		StringCchPrintf(data, sizeof(data) / sizeof(data[0]), L"%d\0", param.ButtonFTimer[cnt].param.indexWindow);
 		ret = WritePrivateProfileString(
 			L"KeyFTimer",
 			szBuf,
@@ -710,6 +798,56 @@ void SaveParamsFFile(const UserParameters_DType param,const LPWSTR Path)
 			Path
 		);
 	}
+
+	//flagEmulationKey
+	StringCchPrintf(szBuf, sizeof(szBuf) / sizeof(szBuf[0]), L"flagEmulationKey\0");
+	StringCchPrintf(data, sizeof(data) / sizeof(data[0]), L"%d\0", param.Option.flagEmulationKey);
+	ret = WritePrivateProfileString(
+		L"Option",
+		szBuf,
+		data,
+		Path
+	);
+
+	//Option.flagMarkPixel
+	StringCchPrintf(szBuf, sizeof(szBuf) / sizeof(szBuf[0]), L"flagMarkPixel\0");
+	StringCchPrintf(data, sizeof(data) / sizeof(data[0]), L"%d\0", param.Option.flagMarkPixel);
+	ret = WritePrivateProfileString(
+		L"Option",
+		szBuf,
+		data,
+		Path
+	);
+
+	//Мультиокна
+	StringCchPrintf(szBuf, sizeof(szBuf) / sizeof(szBuf[0]), L"flagMultiWindow\0");
+	StringCchPrintf(data, sizeof(data) / sizeof(data[0]), L"%d\0", param.Option.flagMultiWindow);
+	ret = WritePrivateProfileString(
+		L"Option",
+		szBuf,
+		data,
+		Path
+	);
+
+	//Пауза при Alt+Tab
+	StringCchPrintf(szBuf, sizeof(szBuf) / sizeof(szBuf[0]), L"AltTabPause\0");
+	StringCchPrintf(data, sizeof(data) / sizeof(data[0]), L"%d\0", param.Option.AltTabPause);
+	ret = WritePrivateProfileString(
+		L"Option",
+		szBuf,
+		data,
+		Path
+	);
+
+	//Кнопка Start Stop
+	StringCchPrintf(szBuf, sizeof(szBuf) / sizeof(szBuf[0]), L"KeyStartStop\0");
+	StringCchPrintf(data, sizeof(data) / sizeof(data[0]), L"%d\0", param.Option.KeyStartStop);
+	ret = WritePrivateProfileString(
+		L"Option",
+		szBuf,
+		data,
+		Path
+	);
 }
 //------------------------------------------------------------------------------
 //Загрузка настроек по умолчанию

@@ -24,6 +24,7 @@ HWND hWndCurrentWndHWnd;
 WindowsProcList_DType WindowsProcList[40];
 DWORD WindowsProcCnt = 0;
 UINT SelectedItem;
+HWND *hwndTarget;
 //******************************************************************************
 // Секция прототипов локальных функций
 //******************************************************************************
@@ -32,7 +33,7 @@ BOOL CALLBACK EnumWndProc(HWND hWnd, LPARAM lParam);
 //******************************************************************************
 // Секция описания функций
 //******************************************************************************
-int WINAPI CreateWindow_SearchWindowHandles(HINSTANCE hInst, HWND parent)
+int WINAPI CreateWindow_SearchWindowHandles(HINSTANCE hInst, HWND parent, HWND *hWndTarget_)
 {
 	hInsSearchWindowHandlest = hInst;
 	WNDCLASSEX NWC = { 0 };
@@ -47,6 +48,8 @@ int WINAPI CreateWindow_SearchWindowHandles(HINSTANCE hInst, HWND parent)
 	NWC.lpfnWndProc = SearchWindowHandlesProcedure;
 	NWC.style = CS_HREDRAW | CS_VREDRAW;
 
+	hwndTarget = hWndTarget_;
+	DestroyWindow(hwndSearchWindowHandles);
 	UnregisterClass(L"SearchwindowHandles", hInsSearchWindowHandlest);
 	if (!RegisterClassEx(&NWC)) { return -1; }
 
@@ -97,7 +100,7 @@ LRESULT CALLBACK SearchWindowHandlesProcedure(HWND hWnd, UINT msg, WPARAM wp, LP
 			StringCchPrintf(szBuf, 128 / sizeof(CHAR), L"HWnd: %d\0", (DWORD)WindowsProcList[SelectedItem].hWnd);
 			SetWindowText(hWndCurrentWndHWnd, szBuf);
 
-			hWndTargetWindow = WindowsProcList[SelectedItem].hWnd;
+			*hwndTarget = WindowsProcList[SelectedItem].hWnd;
 			break;
 		}
 		break;
@@ -113,7 +116,8 @@ LRESULT CALLBACK SearchWindowHandlesProcedure(HWND hWnd, UINT msg, WPARAM wp, LP
 		//ShowWindow(hwndSearchWindowHandles, SW_SHOWDEFAULT);	
 		//UpdateWindow(hwndSearchWindowHandles);
 		break;
-	case WM_DESTROY:	//взывается при закрытии окна		
+	case WM_DESTROY:	//взывается при закрытии окна	
+		DestroyWindow(hwndSearchWindowHandles);
 		UnregisterClass(L"SearchwindowHandles", hInsSearchWindowHandlest);
 		//PostQuitMessage(0);
 		return 0;

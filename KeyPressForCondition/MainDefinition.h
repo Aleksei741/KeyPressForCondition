@@ -2,8 +2,8 @@
 #include <Windows.h>
 
 #define TAB_PAGES	6
-#define TAB_COMPONENTS	150
-#define TAB_TABLECOMPONENTS	11
+#define TAB_COMPONENTS	170
+#define TAB_TABLECOMPONENTS	12
 
 #define START_ID_BUTTON	2000
 
@@ -11,18 +11,20 @@
 #define TAB_PAGE_PIXELEVENTS	1
 #define TAB_PAGE_ALARM			2
 
-#define FIELDS_TIMER_PAGE 8 
+#define FIELDS_TIMER_PAGE 9 
 #define FIELD_ACTIVE_TIMER_PAGE(x)				(0 + FIELDS_TIMER_PAGE * x)
-#define FIELD_BUTTON_TIMER_PAGE(x)				(1 + FIELDS_TIMER_PAGE * x) 
-#define FIELD_PERIOD_TIMER_PAGE(x)				(2 + FIELDS_TIMER_PAGE * x) 
-#define FIELD_NUMREPEAT_TIMER_PAGE(x)			(3 + FIELDS_TIMER_PAGE * x)
-#define FIELD_DELAY_TIMER_PAGE(x)				(4 + FIELDS_TIMER_PAGE * x)
-#define FIELD_CTRL_TIMER_PAGE(x)				(5 + FIELDS_TIMER_PAGE * x)
-#define FIELD_ALT_TIMER_PAGE(x)					(6 + FIELDS_TIMER_PAGE * x)
-#define FIELD_SHIFT_TIMER_PAGE(x)				(7 + FIELDS_TIMER_PAGE * x)
+#define FIELD_NUMWND_TIMER_PAGE(x)				(1 + FIELDS_TIMER_PAGE * x)
+#define FIELD_BUTTON_TIMER_PAGE(x)				(2 + FIELDS_TIMER_PAGE * x) 
+#define FIELD_PERIOD_TIMER_PAGE(x)				(3 + FIELDS_TIMER_PAGE * x) 
+#define FIELD_NUMREPEAT_TIMER_PAGE(x)			(4 + FIELDS_TIMER_PAGE * x)
+#define FIELD_DELAY_TIMER_PAGE(x)				(5 + FIELDS_TIMER_PAGE * x)
+#define FIELD_CTRL_TIMER_PAGE(x)				(6 + FIELDS_TIMER_PAGE * x)
+#define FIELD_ALT_TIMER_PAGE(x)					(7 + FIELDS_TIMER_PAGE * x)
+#define FIELD_SHIFT_TIMER_PAGE(x)				(8 + FIELDS_TIMER_PAGE * x)
 
 #define ID_ACTIVE_TIMER_PAGE					(2000)
 #define ID_BUTTON_TIMER_PAGE					(2001)
+#define ID_NUMWND_TIMER_PAGE					(2002)
 #define ID_PERIOD_TIMER_PAGE(x)					(2020 + x)
 #define ID_NUMREPEAT_TIMER_PAGE(x)				(2040 + x)
 #define ID_DELAY_TIMER_PAGE(x)					(2060 + x)
@@ -79,13 +81,16 @@ enum {
 	OnMenuActionSave,
 	OnMenuActionOpen,
 	OnMenuActionPathFile,
+	OnMenuActionOption,
 
 	IDTimer,
 
 	StartButtonClik,
 	StopButtonClik,
 
-	SearchWindowHandlesButtonClik,
+	SearchWindow1HandlesButtonClik,
+	SearchWindow2HandlesButtonClik,
+	SearchWindow3HandlesButtonClik,
 
 	ID_COMPONENTSUSER,
 

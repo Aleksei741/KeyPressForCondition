@@ -16,6 +16,8 @@
 #include "ButtonsProcess.h"
 #include "USB_procedure.h"
 #include "WindowOptionPathWav.h"
+#include "WindowOption.h"
+#include "KeyHook.h"
 //******************************************************************************
 // Секция определения констант
 //******************************************************************************
@@ -33,6 +35,7 @@ struct PressButtonFTimer_DType
 		CHAR Ctrl;
 		CHAR Alt;
 		CHAR Shift;
+		UCHAR indexWindow;
 		UCHAR indexButton;
 		UINT PeriodPress;
 		UINT NumPress;
@@ -98,23 +101,36 @@ struct ParametersAlarm_DType
 	} status;
 };
 
+struct ParametersOption_DType
+{
+	UCHAR flagMarkPixel;
+	UCHAR flagEmulationKey;
+	UCHAR flagMultiWindow;
+	UCHAR flagMacros;
+	UCHAR KeyStartStop;
+	UINT AltTabPause;
+};
+
 struct UserParameters_DType
 {
 	PressButtonFTimer_DType ButtonFTimer[NUM_BUTTON_FTIMER];
 	ParametersPressButtonFCondition_DType ButtonFCondition[NUM_BUTTON_FCONDITION];	
 	ParametersAlarm_DType Alarm[NUM_ALARM];
 
+	ParametersOption_DType Option;
+
 	UCHAR Active;
-	UCHAR USBDev;
-	UCHAR flagMarkPixel;
+	UCHAR USBDev;	
 	UCHAR flagChekPath;
+	UCHAR KeyPress;
 };
 //******************************************************************************
 // Секция определения глобальных переменных
 //******************************************************************************
 extern UserParameters_DType param;
-extern HWND hWndTargetWindow;
+extern HWND hWndTargetWindow[3];
 extern HINSTANCE g_hInst;
+extern UCHAR KeyPress;
 //******************************************************************************
 // Секция прототипов глобальных функций
 //******************************************************************************
@@ -123,6 +139,7 @@ void SetGUICurrentPixelColor(UCHAR index, COLORREF color);
 void SetGUIParamPixelColorAndPosition(UCHAR index, COLORREF color, UINT X, UINT Y);
 void SetGUICheckBoxUSB(CHAR status);
 void SetGUICheckBoxSound(UCHAR index, BOOL FileStatus);
+void MarkButtonStatus(void);
 //******************************************************************************
 // Секция определения макросов
 //******************************************************************************

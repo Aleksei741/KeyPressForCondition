@@ -56,7 +56,7 @@ DWORD WINAPI ReadScreenProcedure(CONST LPVOID lpParam)
 				if (param.ButtonFCondition[cnt].param.Activate && param.ButtonFCondition[cnt].status.flagPixelSet)
 				{
 					BuferColor[cnt] = GetPixel(dc, param.ButtonFCondition[cnt].status.X, param.ButtonFCondition[cnt].status.Y);
-					if (param.flagMarkPixel)
+					if (param.Option.flagMarkPixel)
 						MarkPixel(dc, param.ButtonFCondition[cnt].status.X, param.ButtonFCondition[cnt].status.Y);
 					SetGUICurrentPixelColor(cnt, BuferColor[cnt]);
 				}
@@ -67,7 +67,7 @@ DWORD WINAPI ReadScreenProcedure(CONST LPVOID lpParam)
 				if (param.Alarm[cnt].param.Activate && param.Alarm[cnt].status.flagPixelSet)
 				{
 					BuferColorAlarm[cnt] = GetPixel(dc, param.Alarm[cnt].status.X, param.Alarm[cnt].status.Y);
-					if (param.flagMarkPixel)
+					if (param.Option.flagMarkPixel)
 						MarkPixel(dc, param.Alarm[cnt].status.X, param.Alarm[cnt].status.Y);
 					SetGUICurrentPixelColor(cnt + NUM_BUTTON_FCONDITION, BuferColorAlarm[cnt]);
 				}

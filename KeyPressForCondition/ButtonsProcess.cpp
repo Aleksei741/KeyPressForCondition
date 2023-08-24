@@ -9,7 +9,7 @@
 // Глобальные
 //------------------------------------------------------------------------------
 extern UserParameters_DType param;
-extern HWND hWndTargetWindow;
+extern HWND hWndTargetWindow[3];
 
 void (*CallbackIndicatePixel)(UCHAR index, COLORREF Color, UINT X, UINT Y);
 //------------------------------------------------------------------------------
@@ -36,13 +36,15 @@ DWORD WINAPI ButtonProcedure(CONST LPVOID lpParam);
 UINT ProcedureSetPixelFCondition(struct MOUSE_STATUStypedef MouseStatus);
 BOOL SoundFileCheck(void);
 BOOL CheckButtonDublicate(enum BType_DType BType, UCHAR index, UCHAR indexButton, clock_t timeDelay);
+BOOL SwitchWindow(HWND TargetWindow);
 //******************************************************************************
 // Секция описания функций
 //******************************************************************************
 void ButtonProcessStart(void)
 {	
 	ReadScreenStart();
-	StartEKey();
+	if(param.Option.flagEmulationKey)
+		StartEKey();
 	hTreadButtonsProcedure = CreateThread(NULL, NULL, ButtonProcedure, NULL, NULL, NULL);
 }
 //------------------------------------------------------------------------------
@@ -50,7 +52,8 @@ void ButtonProcessStop(void)
 {
 	if (hTreadButtonsProcedure) CloseHandle(hTreadButtonsProcedure);
 	ReadScreenStop();
-	StopEKey();
+	if (param.Option.flagEmulationKey)
+		StopEKey();
 	DelMouseHook(NULL, NULL, NULL, NULL);
 }
 //------------------------------------------------------------------------------
@@ -73,141 +76,299 @@ DWORD WINAPI ButtonProcedure(CONST LPVOID lpParam)
 		}
 		//------------------------------------
 		time_ = clock();
-		//Обработчик по таймеру
-		if (param.Active && hWndTargetWindow == GetForegroundWindow())
+		
+		//------------------------------------
+		//Стандартный режим работы
+		if (!param.Option.flagMultiWindow && !param.Option.flagMacros)
 		{
-			for (cnt = 0; cnt < NUM_BUTTON_FTIMER; cnt++)
+			if (param.Active && hWndTargetWindow[0] == GetForegroundWindow())
 			{
-				if (param.ButtonFTimer[cnt].param.Activate == 1)
+				//Обработчик по таймеру
+				if (timeDelay < time_)
 				{
-					if ((param.ButtonFTimer[cnt].status.timeDelay < time_ && timeDelay < time_) ||
-						(param.ButtonFTimer[cnt].status.NumPressCnt != 0 && timeDelay < time_)
-						)
+					for (cnt = 0; cnt < NUM_BUTTON_FTIMER; cnt++)
+					{
+						if (param.ButtonFTimer[cnt].param.Activate == 1)
+						{
+							if ((param.ButtonFTimer[cnt].status.timeDelay < time_) ||
+								(param.ButtonFTimer[cnt].status.NumPressCnt != 0)
+								)
+							{
+								if (param.ButtonFTimer[cnt].status.NumPressCnt < param.ButtonFTimer[cnt].param.NumPress)
+								{
+									param.ButtonFTimer[cnt].status.NumPressCnt++;
+									param.ButtonFTimer[cnt].status.timeDelay = time_ + param.ButtonFTimer[cnt].param.PeriodPress + RangedRand(0, 100);
+									timeDelay = time_ + param.ButtonFTimer[cnt].param.DelayAfterPress + RangedRand(0, 80);
+									CheckButtonDublicate(TYPE_BUTTON_FTIMER, cnt, param.ButtonFTimer[cnt].param.indexButton, param.ButtonFTimer[cnt].status.timeDelay);
+									SendKey(param.ButtonFTimer[cnt].param.indexButton,
+										param.ButtonFTimer[cnt].param.Shift,
+										param.ButtonFTimer[cnt].param.Alt,
+										param.ButtonFTimer[cnt].param.Ctrl);
+									KeyIndexFString(param.ButtonFTimer[cnt].param.indexButton, szKey);
+									HistoryKeyProc(szKey);
+									break;
+								}
+								else
+								{
+									param.ButtonFTimer[cnt].status.NumPressCnt = 0;
+								}
+							}
+
+							if (time_ + param.ButtonFTimer[cnt].param.PeriodPress < param.ButtonFTimer[cnt].status.timeDelay)
+								param.ButtonFTimer[cnt].status.timeDelay = time_ + param.ButtonFTimer[cnt].param.PeriodPress;
+						}
+					}
+				}
+
+				//Обработчик по Событиям
+				if (timeDelay < time_)
+				{
+					for (cnt = 0; cnt < NUM_BUTTON_FCONDITION; cnt++)
+					{
+						if (param.ButtonFCondition[cnt].param.Activate == 1 && param.ButtonFCondition[cnt].status.flagPixelSet)
+						{
+							if (param.ButtonFCondition[cnt].status.timeDelay < time_)
+							{
+								WaitForSingleObject(hMutexReadScreen, INFINITE);
+								if ((PixelCompare(param.ButtonFCondition[cnt].status.curretPixelColor, param.ButtonFCondition[cnt].status.savePixelColor, 5) == true && param.ButtonFCondition[cnt].param.Condition == 0) ||
+									(PixelCompare(param.ButtonFCondition[cnt].status.curretPixelColor, param.ButtonFCondition[cnt].status.savePixelColor, 5) == false && param.ButtonFCondition[cnt].param.Condition == 1)
+									)
+									flagColorFCondition = 1;
+								else
+									flagColorFCondition = 0;
+								ReleaseMutex(hMutexReadScreen);
+
+								if (flagColorFCondition)
+								{
+									param.ButtonFCondition[cnt].status.timeDelay = time_ + param.ButtonFCondition[cnt].param.PeriodPress + RangedRand(0, 100);
+									timeDelay = time_ + param.ButtonFCondition[cnt].param.DelayAfterPress + RangedRand(0, 80);
+									CheckButtonDublicate(TYPE_BUTTON_FCONDITION, cnt, param.ButtonFCondition[cnt].param.indexButton, param.ButtonFCondition[cnt].status.timeDelay);
+									SendKey(param.ButtonFCondition[cnt].param.indexButton,
+										param.ButtonFCondition[cnt].param.Shift,
+										param.ButtonFCondition[cnt].param.Alt,
+										param.ButtonFCondition[cnt].param.Ctrl);
+									KeyIndexFString(param.ButtonFCondition[cnt].param.indexButton, szKey);
+									HistoryKeyProc(szKey);
+									break;
+								}
+							}
+
+							if (time_ + param.ButtonFCondition[cnt].param.PeriodPress < param.ButtonFCondition[cnt].status.timeDelay)
+								param.ButtonFCondition[cnt].status.timeDelay = time_ + param.ButtonFCondition[cnt].param.PeriodPress;
+						}
+					}
+				}
+
+				//Обработчик предупреждений
+				if (timeDelayAlarm < time_)
+				{
+					for (cnt = 0; cnt < NUM_ALARM; cnt++)
+					{
+						if (param.Alarm[cnt].param.Activate == 1 && param.Alarm[cnt].status.flagPixelSet)
+						{
+							if (param.Alarm[cnt].status.timeDelay < time_)
+							{
+								WaitForSingleObject(hMutexReadScreen, INFINITE);
+								if ((PixelCompare(param.ButtonFCondition[cnt].status.curretPixelColor, param.ButtonFCondition[cnt].status.savePixelColor, 5) == true && param.Alarm[cnt].param.Condition == 0) ||
+									(PixelCompare(param.ButtonFCondition[cnt].status.curretPixelColor, param.ButtonFCondition[cnt].status.savePixelColor, 5) == false && param.Alarm[cnt].param.Condition == 1)
+									)
+									flagColorFAlarm = 1;
+								else
+									flagColorFAlarm = 0;
+								ReleaseMutex(hMutexReadScreen);
+
+								if (flagColorFAlarm)
+								{
+									if (param.Alarm[cnt].param.fSound)
+									{
+										PlaySound(param.Alarm[cnt].param.PathSound, g_hInst, SND_NOSTOP | SND_ASYNC);
+									}
+									else if (Beep(param.Alarm[cnt].param.BeepFreq, param.Alarm[cnt].param.BeepLen) != 0)
+									{
+										MessageBeep(MB_ICONERROR);
+										timeDelayAlarm = time_ + max(param.Alarm[cnt].param.BeepLen, 2000);
+									}
+									else
+									{
+										timeDelayAlarm = time_ + param.Alarm[cnt].param.BeepLen + 50;
+									}
+									param.Alarm[cnt].status.timeDelay = time_ + param.Alarm[cnt].param.BeepPeriod;
+									break;
+								}
+							}
+						}
+					}
+				}
+			}
+			else if (param.Active && hWndTargetWindow[0] != GetForegroundWindow())
+			{
+				if (timeDelay < time_)
+					timeDelay = time_ + 100;
+			}
+			else
+			{
+				for (cnt = 0; cnt < NUM_BUTTON_FTIMER; cnt++)
+				{
+					param.ButtonFTimer[cnt].status.timeDelay = time_;
+				}
+				for (cnt = 0; cnt < NUM_BUTTON_FCONDITION; cnt++)
+				{
+					param.ButtonFCondition[cnt].status.timeDelay = time_;
+				}
+				for (cnt = 0; cnt < NUM_ALARM; cnt++)
+				{
+					param.Alarm[cnt].status.timeDelay = time_;
+				}
+				timeDelay = time_ + 500;
+				timeDelayAlarm = time_ + 500;
+			}
+		}
+		//------------------------------------
+		//Мультиокна
+		else if (param.Option.flagMultiWindow)
+		{
+			if (param.Active)
+			{
+				//Обработчик по таймеру
+				if (timeDelay < time_)
+				{
+					for (cnt = 0; cnt < NUM_BUTTON_FTIMER; cnt++)
+					{
+						if (param.ButtonFTimer[cnt].param.Activate == 1)
+						{
+							if ((param.ButtonFTimer[cnt].status.timeDelay < time_) ||
+								(param.ButtonFTimer[cnt].status.NumPressCnt != 0)
+								)
+							{
+								if (param.ButtonFTimer[cnt].status.NumPressCnt < param.ButtonFTimer[cnt].param.NumPress)
+								{
+									param.ButtonFTimer[cnt].status.NumPressCnt++;
+									param.ButtonFTimer[cnt].status.timeDelay = time_ + param.ButtonFTimer[cnt].param.PeriodPress + RangedRand(0, 100);
+									timeDelay = time_ + param.ButtonFTimer[cnt].param.DelayAfterPress + RangedRand(0, 80);
+									
+									if (SwitchWindow(hWndTargetWindow[param.ButtonFTimer[cnt].param.indexWindow]))
+									{
+										SendKey(param.ButtonFTimer[cnt].param.indexButton,
+											param.ButtonFTimer[cnt].param.Shift,
+											param.ButtonFTimer[cnt].param.Alt,
+											param.ButtonFTimer[cnt].param.Ctrl);
+										KeyIndexFString(param.ButtonFTimer[cnt].param.indexButton, szKey);
+										HistoryKeyProc(szKey);
+										break;
+									}
+								}
+								else
+								{
+									param.ButtonFTimer[cnt].status.NumPressCnt = 0;
+								}
+							}
+
+							if (time_ + param.ButtonFTimer[cnt].param.PeriodPress < param.ButtonFTimer[cnt].status.timeDelay)
+								param.ButtonFTimer[cnt].status.timeDelay = time_ + param.ButtonFTimer[cnt].param.PeriodPress;
+						}
+					}
+				}
+			}
+			else
+			{
+				for (cnt = 0; cnt < NUM_BUTTON_FTIMER; cnt++)
+				{
+					param.ButtonFTimer[cnt].status.timeDelay = time_;
+				}
+				timeDelay = time_ + 500;
+			}
+		}
+		//------------------------------------
+		else if (param.Option.flagMacros)
+		{
+			if (param.Active)
+			{
+				//Обработчик по таймеру
+				if (timeDelay < time_)
+				{				
+					if (param.ButtonFTimer[cnt].param.Activate == 1)
 					{
 						if (param.ButtonFTimer[cnt].status.NumPressCnt < param.ButtonFTimer[cnt].param.NumPress)
 						{
 							param.ButtonFTimer[cnt].status.NumPressCnt++;
-							param.ButtonFTimer[cnt].status.timeDelay = time_ + param.ButtonFTimer[cnt].param.PeriodPress + RangedRand(0, 100);
-							timeDelay = time_ + param.ButtonFTimer[cnt].param.DelayAfterPress + RangedRand(0, 80);
-							CheckButtonDublicate(TYPE_BUTTON_FTIMER, cnt, param.ButtonFTimer[cnt].param.indexButton, param.ButtonFTimer[cnt].status.timeDelay);
-							SendKey(param.ButtonFTimer[cnt].param.indexButton, 
-								param.ButtonFTimer[cnt].param.Shift, 
-								param.ButtonFTimer[cnt].param.Alt, 
-								param.ButtonFTimer[cnt].param.Ctrl);
-							KeyIndexFString(param.ButtonFTimer[cnt].param.indexButton, szKey);
-							HistoryKeyProc(szKey);
-							break;
+							if (SwitchWindow(hWndTargetWindow[param.ButtonFTimer[cnt].param.indexWindow]))
+							{
+								SendKey(param.ButtonFTimer[cnt].param.indexButton,
+									param.ButtonFTimer[cnt].param.Shift,
+									param.ButtonFTimer[cnt].param.Alt,
+									param.ButtonFTimer[cnt].param.Ctrl);
+								KeyIndexFString(param.ButtonFTimer[cnt].param.indexButton, szKey);
+								HistoryKeyProc(szKey);
+								timeDelay = time_ + param.ButtonFTimer[cnt].param.DelayAfterPress + RangedRand(0, 80);
+							}
 						}
 						else
 						{
 							param.ButtonFTimer[cnt].status.NumPressCnt = 0;
+							cnt++;
+							if(cnt >= NUM_BUTTON_FTIMER)
+								param.Active = 0;
 						}
 					}
-
-					if (time_ + param.ButtonFTimer[cnt].param.PeriodPress < param.ButtonFTimer[cnt].status.timeDelay)
-						param.ButtonFTimer[cnt].status.timeDelay = time_ + param.ButtonFTimer[cnt].param.PeriodPress;
-				}
-			}
-
-			//Обработчик по Событиям
-			for (cnt = 0; cnt < NUM_BUTTON_FCONDITION; cnt++)
-			{
-				if (param.ButtonFCondition[cnt].param.Activate == 1 && param.ButtonFCondition[cnt].status.flagPixelSet)
-				{
-					if (param.ButtonFCondition[cnt].status.timeDelay < time_ && timeDelay < time_)
+					else
 					{
-						WaitForSingleObject(hMutexReadScreen, INFINITE);
-						if ((PixelCompare(param.ButtonFCondition[cnt].status.curretPixelColor, param.ButtonFCondition[cnt].status.savePixelColor, 5) == true && param.ButtonFCondition[cnt].param.Condition == 0) ||
-							(PixelCompare(param.ButtonFCondition[cnt].status.curretPixelColor, param.ButtonFCondition[cnt].status.savePixelColor, 5) == false && param.ButtonFCondition[cnt].param.Condition == 1)
-							)
-							flagColorFCondition = 1;
-						else
-							flagColorFCondition = 0;
-						ReleaseMutex(hMutexReadScreen);
-
-						if(flagColorFCondition)
-						{
-							param.ButtonFCondition[cnt].status.timeDelay = time_ + param.ButtonFCondition[cnt].param.PeriodPress + RangedRand(0, 100);
-							timeDelay = time_ + param.ButtonFCondition[cnt].param.DelayAfterPress + RangedRand(0, 80);
-							CheckButtonDublicate(TYPE_BUTTON_FCONDITION, cnt, param.ButtonFCondition[cnt].param.indexButton, param.ButtonFCondition[cnt].status.timeDelay);
-							SendKey(param.ButtonFCondition[cnt].param.indexButton, 
-								param.ButtonFCondition[cnt].param.Shift,
-								param.ButtonFCondition[cnt].param.Alt,
-								param.ButtonFCondition[cnt].param.Ctrl);
-							KeyIndexFString(param.ButtonFCondition[cnt].param.indexButton, szKey);
-							HistoryKeyProc(szKey);
-							break;
-						}
+						cnt++;
+						if (cnt >= NUM_BUTTON_FTIMER)
+							param.Active = 0;
 					}
-
-					if (time_ + param.ButtonFCondition[cnt].param.PeriodPress < param.ButtonFCondition[cnt].status.timeDelay)
-						param.ButtonFCondition[cnt].status.timeDelay = time_ + param.ButtonFCondition[cnt].param.PeriodPress;
 				}
 			}
-
-			//Обработчик предупреждений
-			for (cnt = 0; cnt < NUM_ALARM; cnt++)
+			else
 			{
-				if (param.Alarm[cnt].param.Activate == 1 && param.Alarm[cnt].status.flagPixelSet)
-				{
-					if (param.Alarm[cnt].status.timeDelay < time_ && timeDelayAlarm < time_)
-					{
-						WaitForSingleObject(hMutexReadScreen, INFINITE);
-						if ((PixelCompare(param.ButtonFCondition[cnt].status.curretPixelColor, param.ButtonFCondition[cnt].status.savePixelColor, 5) == true && param.Alarm[cnt].param.Condition == 0) ||
-							(PixelCompare(param.ButtonFCondition[cnt].status.curretPixelColor, param.ButtonFCondition[cnt].status.savePixelColor, 5) == false && param.Alarm[cnt].param.Condition == 1)
-							)
-							flagColorFAlarm = 1;
-						else
-							flagColorFAlarm = 0;
-						ReleaseMutex(hMutexReadScreen);
-
-						if (flagColorFAlarm)
-						{
-							if (param.Alarm[cnt].param.fSound)
-							{
-								PlaySound(param.Alarm[cnt].param.PathSound, g_hInst, SND_NOSTOP | SND_ASYNC);
-							}
-							else if (Beep(param.Alarm[cnt].param.BeepFreq, param.Alarm[cnt].param.BeepLen) != 0)
-							{
-								MessageBeep(MB_ICONERROR);
-								timeDelayAlarm = time_ + max(param.Alarm[cnt].param.BeepLen, 2000);
-							}
-							else
-							{
-								timeDelayAlarm = time_ + param.Alarm[cnt].param.BeepLen+50;
-							}
-							param.Alarm[cnt].status.timeDelay = time_ + param.Alarm[cnt].param.BeepPeriod;
-							break;
-						}
-					}					
-				}
+				cnt = 0;
+				timeDelay = time_ + 500;
 			}
 		}
-		else if (param.Active && hWndTargetWindow != GetForegroundWindow())
+		//------------------------------------
+		if (param.KeyPress == param.Option.KeyStartStop && param.KeyPress != 0 && param.Option.KeyStartStop != 0)
 		{
-			if(timeDelay < time_)
-				timeDelay = time_ + 100;
+			param.KeyPress = 0;
+			if (param.Active)
+			{
+				param.Active = 0;
+			}
+			else
+			{
+				param.Active = 1;
+			}
 		}
-		else
-		{
-			for (cnt = 0; cnt < NUM_BUTTON_FTIMER; cnt++)
-			{
-				param.ButtonFTimer[cnt].status.timeDelay = time_;
-			}
-			for (cnt = 0; cnt < NUM_BUTTON_FCONDITION; cnt++)
-			{
-				param.ButtonFCondition[cnt].status.timeDelay = time_;
-			}
-			for (cnt = 0; cnt < NUM_ALARM; cnt++)
-			{
-				param.Alarm[cnt].status.timeDelay = time_;
-			}
-			timeDelay = time_ + 500;
-			timeDelayAlarm = time_ + 500;
-		}
+		//------------------------------------
 		SoundFileCheck();
+		MarkButtonStatus();
 		Sleep(1);
 	}
+
+	return 0;
+}
+//------------------------------------------------------------------------------
+BOOL SwitchWindow(HWND TargetWindow)
+{
+	UCHAR cnt;
+	if (TargetWindow == 0)
+		return FALSE;
+
+	for (cnt = 0; cnt<20, TargetWindow != GetForegroundWindow(); cnt++)
+	{
+		if (!IsWindow(TargetWindow))
+			return FALSE;
+
+		SendKey(64, 0, 1,0);
+
+		Sleep(param.Option.AltTabPause);
+	}
+
+	if (TargetWindow == GetForegroundWindow())
+	{
+		Sleep(param.Option.AltTabPause);
+		return TRUE;
+	}
+	else
+		return FALSE;
 }
 //------------------------------------------------------------------------------
 DWORD StartSetPixelFCondition(UCHAR index)
@@ -250,6 +411,8 @@ UINT ProcedureSetPixelFCondition(struct MOUSE_STATUStypedef MouseStatus)
 		dc = GetDC(NULL);
 		BuferColor = GetPixel(dc, MouseStatus.xPosition, MouseStatus.yPosition);
 		ReleaseDC(NULL, dc);
+
+		*StatusPixel.savePixelColor = BuferColor;
 
 		if (CallbackIndicatePixel)
 			CallbackIndicatePixel(GUIButtonIndex, BuferColor, MouseStatus.xPosition, MouseStatus.yPosition);
