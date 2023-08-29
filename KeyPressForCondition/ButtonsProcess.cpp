@@ -179,18 +179,14 @@ DWORD WINAPI ButtonProcedure(CONST LPVOID lpParam)
 
 								if (flagColorFAlarm)
 								{
-									if (param.Alarm[cnt].param.fSound)
-									{
-										PlaySound(param.Alarm[cnt].param.PathSound, g_hInst, SND_NOSTOP | SND_ASYNC);
-										timeDelayAlarm = time_ + param.Alarm[cnt].param.BeepPeriod;
-									}
-									else
-									{
-										timeDelayAlarm = time_ + param.Alarm[cnt].param.BeepPeriod;
-										Beep(param.Alarm[cnt].param.BeepFreq, param.Alarm[cnt].param.BeepLen);									
-									}
-
+									timeDelayAlarm = time_ + param.Alarm[cnt].param.BeepLen;
 									param.Alarm[cnt].status.timeDelay = time_ + param.Alarm[cnt].param.BeepPeriod;
+									
+									if (param.Alarm[cnt].param.fSound)									
+										PlaySound(param.Alarm[cnt].param.PathSound, g_hInst, SND_NOSTOP | SND_ASYNC);
+									else
+										Beep(param.Alarm[cnt].param.BeepFreq, param.Alarm[cnt].param.BeepLen);
+
 									break;
 								}
 							}
