@@ -427,6 +427,7 @@ void ReadParametersFGUI(void)
 			param.Alarm[cnt].param.Activate = SendMessage(TabControlComponents[TAB_PAGE_ALARM][FIELD_ACTIVE_ALARM_PAGE(cnt)], BM_GETCHECK, 0, 0);
 			param.Alarm[cnt].param.Condition = SendMessage(TabControlComponents[TAB_PAGE_ALARM][FIELD_CONDITION_ALARM_PAGE(cnt)], CB_GETCURSEL, 0, 0);
 			param.Alarm[cnt].param.BeepLen = GetDlgItemInt(hwndTabc, ID_BEEPLEN_ALARM_PAGE(cnt), NULL, false);
+			param.Alarm[cnt].param.fSound = SendMessage(TabControlComponents[TAB_PAGE_ALARM][FIELD_SOUND_ALARM_PAGE(cnt)], BM_GETCHECK, 0, 0);
 			//param.Alarm[cnt].param.BeepFreq = GetDlgItemInt(hwndTabc, ID_BEEPFREQ_ALARM_PAGE(cnt), NULL, false);
 			//param.Alarm[cnt].param.BeepPeriod = GetDlgItemInt(hwndTabc, ID_BEEPPERIOD_ALARM_PAGE(cnt), NULL, false);
 			//param.Alarm[cnt].param.fSound = SendMessage(TabControlComponents[TAB_PAGE_ALARM][FIELD_SOUND_ALARM_PAGE(cnt)], BM_GETCHECK, 0, 0);

@@ -169,8 +169,8 @@ DWORD WINAPI ButtonProcedure(CONST LPVOID lpParam)
 							if (param.Alarm[cnt].status.timeDelay < time_)
 							{
 								WaitForSingleObject(hMutexReadScreen, INFINITE);
-								if ((PixelCompare(param.ButtonFCondition[cnt].status.curretPixelColor, param.ButtonFCondition[cnt].status.savePixelColor, 5) == true && param.Alarm[cnt].param.Condition == 0) ||
-									(PixelCompare(param.ButtonFCondition[cnt].status.curretPixelColor, param.ButtonFCondition[cnt].status.savePixelColor, 5) == false && param.Alarm[cnt].param.Condition == 1)
+								if ((PixelCompare(param.Alarm[cnt].status.curretPixelColor, param.Alarm[cnt].status.savePixelColor, 5) == true && param.Alarm[cnt].param.Condition == 0) ||
+									(PixelCompare(param.Alarm[cnt].status.curretPixelColor, param.Alarm[cnt].status.savePixelColor, 5) == false && param.Alarm[cnt].param.Condition == 1)
 									)
 									flagColorFAlarm = 1;
 								else
@@ -182,16 +182,14 @@ DWORD WINAPI ButtonProcedure(CONST LPVOID lpParam)
 									if (param.Alarm[cnt].param.fSound)
 									{
 										PlaySound(param.Alarm[cnt].param.PathSound, g_hInst, SND_NOSTOP | SND_ASYNC);
-									}
-									else if (Beep(param.Alarm[cnt].param.BeepFreq, param.Alarm[cnt].param.BeepLen) != 0)
-									{
-										MessageBeep(MB_ICONERROR);
-										timeDelayAlarm = time_ + max(param.Alarm[cnt].param.BeepLen, 2000);
+										timeDelayAlarm = time_ + param.Alarm[cnt].param.BeepPeriod;
 									}
 									else
 									{
-										timeDelayAlarm = time_ + param.Alarm[cnt].param.BeepLen + 50;
+										timeDelayAlarm = time_ + param.Alarm[cnt].param.BeepPeriod;
+										Beep(param.Alarm[cnt].param.BeepFreq, param.Alarm[cnt].param.BeepLen);									
 									}
+
 									param.Alarm[cnt].status.timeDelay = time_ + param.Alarm[cnt].param.BeepPeriod;
 									break;
 								}
@@ -349,26 +347,29 @@ DWORD WINAPI ButtonProcedure(CONST LPVOID lpParam)
 BOOL SwitchWindow(HWND TargetWindow)
 {
 	UCHAR cnt;
+	BOOL ret = FALSE;
 	if (TargetWindow == 0)
-		return FALSE;
+		return ret;
 
-	for (cnt = 0; cnt<20, TargetWindow != GetForegroundWindow(); cnt++)
+	for (cnt = 0; cnt<20; cnt++)
 	{
 		if (!IsWindow(TargetWindow))
-			return FALSE;
+			break;
 
-		SendKey(64, 0, 1,0);
+		if (TargetWindow == GetForegroundWindow())
+		{
+			ret = TRUE;
+			break;
+		}
 
+		SendKey(64, 0, 1, 0);
 		Sleep(param.Option.AltTabPause);
 	}
 
-	if (TargetWindow == GetForegroundWindow())
-	{
+	if (ret)
 		Sleep(param.Option.AltTabPause);
-		return TRUE;
-	}
-	else
-		return FALSE;
+	
+	return ret;
 }
 //------------------------------------------------------------------------------
 DWORD StartSetPixelFCondition(UCHAR index)
@@ -463,7 +464,8 @@ BOOL SoundFileCheck(void)
 		for (cnt = 0; cnt < sizeof(param.Alarm) / sizeof(param.Alarm[0]); cnt++)
 		{
 			ret = FileExists(param.Alarm[cnt].param.PathSound);
-			if (!ret)	param.Alarm[cnt].param.fSound = FALSE;
+			if (!ret)	
+				param.Alarm[cnt].param.fSound = FALSE;
 			SetGUICheckBoxSound(cnt, ret);
 		}
 	}
