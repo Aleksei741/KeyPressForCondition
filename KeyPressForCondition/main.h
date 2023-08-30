@@ -86,7 +86,7 @@ struct ParametersAlarm_DType
 		DWORD BeepLen;
 		DWORD BeepFreq;
 		DWORD BeepPeriod;
-		TCHAR PathSound[128];
+		TCHAR PathSound[MAX_PATH];
 		BOOL fSound;
 	} param;
 

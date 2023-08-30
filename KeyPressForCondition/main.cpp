@@ -584,7 +584,12 @@ void MarkButtonStatus(void)
 	static UCHAR lastActiveStatus = 3;
 	static UCHAR lastMultiWindowStatus = 3;
 	static UCHAR lastflagMacros = 3;
-	
+	static clock_t timeDealay = 0;
+
+	if (timeDealay > clock())
+		return;
+	timeDealay = clock() + 100;
+
 	for (cnt = 0; cnt < sizeof(hWndTargetWindow) / sizeof(hWndTargetWindow[0]); cnt++)
 	{
 		if (hWndTargetWindow[cnt] != 0)

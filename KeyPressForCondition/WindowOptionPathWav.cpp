@@ -61,7 +61,7 @@ LRESULT CALLBACK OptionWindowProcedure(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp
 	PAINTSTRUCT ps;
 	HDC hdc;
 	UCHAR cnt = 0;
-	TCHAR szBuf[128] = { 0 };
+	TCHAR szBuf[MAX_PATH] = { 0 };
 
 	switch (msg)
 	{
@@ -73,7 +73,7 @@ LRESULT CALLBACK OptionWindowProcedure(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp
 				if (ButtonClikPathWavFile(cnt) == LOWORD(wp))
 				{
 					OpenFileWav(szBuf);
-					StringCchPrintf(param.Alarm[cnt].param.PathSound, 128, L"%s", szBuf);
+					StringCchPrintf(param.Alarm[cnt].param.PathSound, MAX_PATH, L"%s\0", szBuf);
 					SendMessage(hwndOptionPath[cnt], WM_SETTEXT, 0, (LPARAM)param.Alarm[cnt].param.PathSound);
 					param.flagChekPath = TRUE;
 					break;
@@ -85,7 +85,7 @@ LRESULT CALLBACK OptionWindowProcedure(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp
 	case WM_CREATE:	//вызывается при создании окна			
 		for (cnt = 0; cnt < 10; cnt++)
 		{
-			StringCchPrintf(szBuf, 100, L"%d.", cnt+1);
+			StringCchPrintf(szBuf, MAX_PATH, L"%d.", cnt+1);
 			CreateWindow(WC_STATIC, szBuf, WS_VISIBLE | WS_CHILD, 10, 10 + LINE_SPACE_OPTION * cnt, 30, 40, hWnd, NULL, hInstOption, NULL);
 			hwndOptionPath[cnt] = CreateWindow(WC_STATIC, L"---", WS_VISIBLE | WS_CHILD, 40, 10 + LINE_SPACE_OPTION * cnt, 400, 22, hWnd, NULL, hInstOption, NULL);
 			CreateWindow(WC_BUTTON, L"-", WS_VISIBLE | WS_CHILD, 450, 10 + LINE_SPACE_OPTION * cnt, 40, 20, hWnd, (HMENU)ButtonClikPathWavFile(cnt), hInstOption, NULL);

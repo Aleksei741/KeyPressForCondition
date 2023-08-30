@@ -59,6 +59,7 @@ void ButtonProcessStop(void)
 //------------------------------------------------------------------------------
 DWORD WINAPI ButtonProcedure(CONST LPVOID lpParam)
 {
+	BOOL flagSound = FALSE;
 	clock_t timeDelay = 0;
 	clock_t timeDelayAlarm = 0;
 	UINT cnt;
@@ -182,8 +183,11 @@ DWORD WINAPI ButtonProcedure(CONST LPVOID lpParam)
 									timeDelayAlarm = time_ + param.Alarm[cnt].param.BeepLen;
 									param.Alarm[cnt].status.timeDelay = time_ + param.Alarm[cnt].param.BeepPeriod;
 									
-									if (param.Alarm[cnt].param.fSound)									
-										PlaySound(param.Alarm[cnt].param.PathSound, g_hInst, SND_NOSTOP | SND_ASYNC);
+									if (param.Alarm[cnt].param.fSound)
+									{
+										PlaySound(param.Alarm[cnt].param.PathSound, NULL, SND_NOSTOP | SND_ASYNC | SND_FILENAME);
+										flagSound = TRUE;
+									}
 									else
 										Beep(param.Alarm[cnt].param.BeepFreq, param.Alarm[cnt].param.BeepLen);
 
@@ -196,11 +200,23 @@ DWORD WINAPI ButtonProcedure(CONST LPVOID lpParam)
 			}
 			else if (param.Active && hWndTargetWindow[0] != GetForegroundWindow())
 			{
+				if (flagSound)
+				{
+					PlaySound(NULL, NULL, 0);
+					flagSound = FALSE;
+				}
+
 				if (timeDelay < time_)
 					timeDelay = time_ + 100;
 			}
 			else
 			{
+				if (flagSound)
+				{
+					PlaySound(NULL, NULL, 0);
+					flagSound = FALSE;
+				}
+
 				for (cnt = 0; cnt < NUM_BUTTON_FTIMER; cnt++)
 				{
 					param.ButtonFTimer[cnt].status.timeDelay = time_;

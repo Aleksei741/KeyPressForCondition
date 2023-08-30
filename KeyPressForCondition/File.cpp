@@ -62,7 +62,7 @@ void SaveFileDefault(const UserParameters_DType param)
 LPTSTR OpenFileUser(UserParameters_DType &param)
 {
 	OPENFILENAME lpofn;
-	TCHAR szFile[125];
+	TCHAR szFile[MAX_PATH];
 	CHAR openFileStatus = 0;
 
 	ZeroMemory(&lpofn, sizeof(lpofn));
@@ -92,7 +92,7 @@ LPTSTR OpenFileUser(UserParameters_DType &param)
 LPTSTR SaveFileUser(const UserParameters_DType param)
 {
 	OPENFILENAME lpofn;
-	TCHAR szFile[125];
+	TCHAR szFile[MAX_PATH];
 	CHAR saveFileStatus = 0;
 
 	ZeroMemory(&lpofn, sizeof(lpofn));
@@ -124,7 +124,7 @@ BOOL LoadParamsFFile(UserParameters_DType& param, LPWSTR Path)
 {
 	BOOL ret = TRUE;
 	CHAR cnt;
-	TCHAR szBuf[128];
+	TCHAR szBuf[MAX_PATH];
 	UINT retParam;
 
 	//—читываем параметры нажати€ по таймеру
@@ -444,7 +444,7 @@ BOOL LoadParamsFFile(UserParameters_DType& param, LPWSTR Path)
 			szBuf,
 			L"None",
 			param.Alarm[cnt].param.PathSound,
-			128,
+			MAX_PATH,
 			Path
 		);
 
@@ -534,8 +534,8 @@ BOOL LoadParamsFFile(UserParameters_DType& param, LPWSTR Path)
 void SaveParamsFFile(const UserParameters_DType param,const LPWSTR Path)
 {
 	CHAR cnt;
-	TCHAR szBuf[128];
-	TCHAR data[128];
+	TCHAR szBuf[MAX_PATH];
+	TCHAR data[MAX_PATH];
 	UINT ret;
 
 	//—читываем параметры нажати€ по таймеру
@@ -854,7 +854,7 @@ void SaveParamsFFile(const UserParameters_DType param,const LPWSTR Path)
 BOOL OpenFileWav(TCHAR* path)
 {
 	OPENFILENAME lpofn;
-	TCHAR szFile[125];
+	TCHAR szFile[MAX_PATH];
 	CHAR openFileStatus = 0;
 
 	ZeroMemory(&lpofn, sizeof(lpofn));
@@ -872,7 +872,7 @@ BOOL OpenFileWav(TCHAR* path)
 
 	openFileStatus = GetOpenFileName(&lpofn);
 
-	StringCchPrintf(path, 128, L"%s", lpofn.lpstrFile);
+	StringCchPrintf(path, MAX_PATH, L"%s\0", lpofn.lpstrFile);
 
 	if (openFileStatus != 0)
 	{
