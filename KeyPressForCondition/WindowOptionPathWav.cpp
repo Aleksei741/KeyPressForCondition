@@ -15,7 +15,8 @@
 static HINSTANCE hInstOption;
 static HWND hwndOptionWindow;
 
-static HWND hwndOptionPath[10];
+static HWND hwndOptionStaticPath[10];
+static HWND hwndOptionButtonPath[10];
 
 static BOOL flagWriteGUI;
 //******************************************************************************
@@ -62,6 +63,7 @@ LRESULT CALLBACK OptionWindowProcedure(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp
 	HDC hdc;
 	UCHAR cnt = 0;
 	TCHAR szBuf[MAX_PATH] = { 0 };
+	RECT rcClient;//screen size
 
 	switch (msg)
 	{
@@ -74,7 +76,7 @@ LRESULT CALLBACK OptionWindowProcedure(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp
 				{
 					OpenFileWav(szBuf);
 					StringCchPrintf(param.Alarm[cnt].param.PathSound, MAX_PATH, L"%s\0", szBuf);
-					SendMessage(hwndOptionPath[cnt], WM_SETTEXT, 0, (LPARAM)param.Alarm[cnt].param.PathSound);
+					SendMessage(hwndOptionStaticPath[cnt], WM_SETTEXT, 0, (LPARAM)param.Alarm[cnt].param.PathSound);
 					param.flagChekPath = TRUE;
 					break;
 				}
@@ -82,19 +84,30 @@ LRESULT CALLBACK OptionWindowProcedure(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp
 			
 		}
 		break;
-	case WM_CREATE:	//вызывается при создании окна			
+	case WM_CREATE:	//вызывается при создании окна		
+		GetClientRect(hWnd, &rcClient);
 		for (cnt = 0; cnt < 10; cnt++)
 		{
 			StringCchPrintf(szBuf, MAX_PATH, L"%d.", cnt+1);
 			CreateWindow(WC_STATIC, szBuf, WS_VISIBLE | WS_CHILD, 10, 10 + LINE_SPACE_OPTION * cnt, 30, 40, hWnd, NULL, hInstOption, NULL);
-			hwndOptionPath[cnt] = CreateWindow(WC_STATIC, L"---", WS_VISIBLE | WS_CHILD, 40, 10 + LINE_SPACE_OPTION * cnt, 400, 22, hWnd, NULL, hInstOption, NULL);
-			CreateWindow(WC_BUTTON, L"-", WS_VISIBLE | WS_CHILD, 450, 10 + LINE_SPACE_OPTION * cnt, 40, 20, hWnd, (HMENU)ButtonClikPathWavFile(cnt), hInstOption, NULL);
+			hwndOptionStaticPath[cnt] = CreateWindow(WC_STATIC, L"---", WS_VISIBLE | WS_CHILD, 40, 10 + LINE_SPACE_OPTION * cnt, rcClient.right - rcClient.left - 100, 22, hWnd, NULL, hInstOption, NULL);
+			hwndOptionButtonPath[cnt] = CreateWindow(WC_BUTTON, L"-", WS_VISIBLE | WS_CHILD, rcClient.right-50, 10 + LINE_SPACE_OPTION * cnt, 40, 20, hWnd, (HMENU)ButtonClikPathWavFile(cnt), hInstOption, NULL);
 		}
 		WriteOptionFGUI(hWnd);
 		break;
 	case WM_DESTROY:	//взывается при закрытии окна		
 		UnregisterClass(L"OptionMozillaFirefox", hInstOption);
 		DestroyWindow(hWnd);
+		break;
+
+	case WM_SIZE:
+		GetClientRect(hWnd, &rcClient);
+		for (cnt = 0; cnt < 10; cnt++)
+		{
+			SetWindowPos(hwndOptionStaticPath[cnt], NULL, 0, 0, rcClient.right - rcClient.left - 100, 22, SWP_NOMOVE | SWP_NOOWNERZORDER);
+			SetWindowPos(hwndOptionButtonPath[cnt], NULL, rcClient.right - 50, 10 + LINE_SPACE_OPTION * cnt, 0, 0, SWP_NOSIZE | SWP_NOOWNERZORDER);
+		}
+
 		break;
 
 	case WM_NOTIFY:		
@@ -117,7 +130,7 @@ void WriteOptionFGUI(HWND hWnd)
 	flagWriteGUI = TRUE;
 	for (cnt = 0; cnt < 10; cnt++)
 	{
-		SendMessage(hwndOptionPath[cnt], WM_SETTEXT, 0, (LPARAM)param.Alarm[cnt].param.PathSound);		
+		SendMessage(hwndOptionStaticPath[cnt], WM_SETTEXT, 0, (LPARAM)param.Alarm[cnt].param.PathSound);
 	}
 	flagWriteGUI = FALSE;
 }
