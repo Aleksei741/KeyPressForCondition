@@ -14,6 +14,11 @@ HANDLE hMutexReadScreen;
 //------------------------------------------------------------------------------
 HANDLE hTreadReadScreen;
 UCHAR flagReadScreenActive;
+
+static int X_interrupt;
+static int Y_interrupt;
+static BOOL flag_interrupt;
+static COLORREF *color_interrupt;
 //******************************************************************************
 // Секция прототипов локальных функций
 //******************************************************************************
@@ -71,7 +76,7 @@ DWORD WINAPI ReadScreenProcedure(CONST LPVOID lpParam)
 						MarkPixel(dc, param.Alarm[cnt].status.X, param.Alarm[cnt].status.Y);
 					SetGUICurrentPixelColor(cnt + NUM_BUTTON_FCONDITION, BuferColorAlarm[cnt]);
 				}
-			}
+			}			
 			ReleaseDC(NULL, dc);
 
 			WaitForSingleObject(hMutexReadScreen, INFINITE);
@@ -92,11 +97,31 @@ DWORD WINAPI ReadScreenProcedure(CONST LPVOID lpParam)
 			}
 			ReleaseMutex(hMutexReadScreen);
 		}
-		Sleep(60);
+
+		/*if (flag_interrupt)
+		{
+			dc = GetDC(NULL);
+			WaitForSingleObject(hMutexReadScreen, INFINITE);
+			flag_interrupt = FALSE;
+			if(color_interrupt)
+				*color_interrupt = GetPixel(dc, param.Alarm[cnt].status.X, param.Alarm[cnt].status.Y);
+			SetGUIParamPixelColorAndPosition(NULL, NULL, NULL, NULL);
+			ReleaseMutex(hMutexReadScreen);
+			ReleaseDC(NULL, dc);
+		}*/
+		Sleep(100);
 	}
 
 	if (hTreadReadScreen) CloseHandle(hTreadReadScreen);
 	return NULL;
+}
+//------------------------------------------------------------------------------
+void IndicatePixel(COLORREF* p, int x, int y)
+{
+	flag_interrupt = TRUE;
+	X_interrupt = x;
+	Y_interrupt = y;
+	color_interrupt = p;
 }
 //------------------------------------------------------------------------------
 bool PixelCompare(COLORREF pixel1, COLORREF pixel2, int variation)

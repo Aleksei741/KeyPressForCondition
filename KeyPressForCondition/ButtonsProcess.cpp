@@ -350,7 +350,7 @@ DWORD WINAPI ButtonProcedure(CONST LPVOID lpParam)
 		//------------------------------------
 		SoundFileCheck();
 		MarkButtonStatus();
-		Sleep(1);
+		Sleep(10);
 	}
 
 	return 0;
@@ -427,11 +427,17 @@ UINT ProcedureSetPixelFCondition(struct MOUSE_STATUStypedef MouseStatus)
 
 		*StatusPixel.savePixelColor = BuferColor;
 
+		//IndicatePixel(StatusPixel.savePixelColor, MouseStatus.xPosition, MouseStatus.yPosition);
+
 		if (CallbackIndicatePixel)
 			CallbackIndicatePixel(GUIButtonIndex, BuferColor, MouseStatus.xPosition, MouseStatus.yPosition);
 
 		if (MouseStatus.LeftButton == 1)
 		{
+			dc = GetDC(NULL);
+			BuferColor = GetPixel(dc, MouseStatus.xPosition, MouseStatus.yPosition);
+			ReleaseDC(NULL, dc);
+
 			if (flagMouse == FALSE)
 			{
 				WaitForSingleObject(hMutexReadScreen, INFINITE);

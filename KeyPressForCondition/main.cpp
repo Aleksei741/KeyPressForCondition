@@ -513,45 +513,17 @@ void HistoryKeyProc(TCHAR *szKey)
 //------------------------------------------------------------------------------
 void SetGUICurrentPixelColor(UCHAR index, COLORREF color)
 {
-	UCHAR tmp;
-	TCHAR szBuf[100];
+	static clock_t timeDealay = 0;
 
-	StringCchPrintf(szBuf, 100, L"R%dG%dB%d", GetRValue(color), GetGValue(color), GetBValue(color));
-	if (index >= NUM_BUTTON_FCONDITION)
-	{	
-		tmp = index - NUM_BUTTON_FCONDITION;
-		SendMessage(TabControlComponents[TAB_PAGE_ALARM][FIELD_SETCOLOR_ALARM_PAGE(tmp)], WM_SETTEXT, 0, (LPARAM)szBuf);
-	}
-	else
-		SendMessage(TabControlComponents[TAB_PAGE_PIXELEVENTS][FIELD_SETCOLOR_PIXELEVENTS_PAGE(index)], WM_SETTEXT, 0, (LPARAM)szBuf);
+	if (timeDealay > clock())
+		return;
+	timeDealay = clock() + 200;
 
 	RedrawWindow(hwndTabc, NULL, NULL, RDW_FRAME | RDW_INVALIDATE | RDW_UPDATENOW);
 }
 //------------------------------------------------------------------------------
 void SetGUIParamPixelColorAndPosition(UCHAR index, COLORREF color, UINT X, UINT Y)
 {
-	UCHAR tmp;
-	TCHAR szBuf[100];
-	HWND hWndColor;
-	HWND hWndPosition;
-
-	/*if (index >= NUM_BUTTON_FCONDITION)
-	{
-		tmp = index - NUM_BUTTON_FCONDITION;
-		hWndColor = TabControlComponents[TAB_PAGE_ALARM][FIELD_GETCOLOR_ALARM_PAGE(tmp)];
-		hWndPosition = TabControlComponents[TAB_PAGE_ALARM][FIELD_POSITIONPIXEL_ALARM_PAGE(tmp)];
-	}
-	else
-	{
-		hWndColor = TabControlComponents[TAB_PAGE_PIXELEVENTS][FIELD_GETCOLOR_PIXELEVENTS_PAGE(index)];
-		hWndPosition = TabControlComponents[TAB_PAGE_PIXELEVENTS][FIELD_POSITIONPIXEL_PIXELEVENTS_PAGE(index)];
-	}
-
-	StringCchPrintf(szBuf, 100, L"R%dG%dB%d", GetRValue(color), GetGValue(color), GetBValue(color));
-	SendMessage(hWndColor, WM_SETTEXT, 0, (LPARAM)szBuf);
-	StringCchPrintf(szBuf, 100, L"X%dY%d", X, Y);
-	SendMessage(hWndPosition, WM_SETTEXT, 0, (LPARAM)szBuf);*/
-
 	RedrawWindow(hwndTabc, NULL, NULL, RDW_FRAME | RDW_INVALIDATE | RDW_UPDATENOW);
 }
 //------------------------------------------------------------------------------
@@ -996,6 +968,12 @@ LRESULT CALLBACK ChildWndProc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp)
 		if (LOWORD(wp) == ID_ACTIVE_ALARM_PAGE)
 		{
 			if (HIWORD(wp) == 0)
+				ReadParametersFGUI();
+		}
+		//Условие
+		if (LOWORD(wp) == ID_CONDITION_ALARM_PAGE)
+		{
+			if (HIWORD(wp) == CBN_SELCHANGE)
 				ReadParametersFGUI();
 		}
 		//Sound

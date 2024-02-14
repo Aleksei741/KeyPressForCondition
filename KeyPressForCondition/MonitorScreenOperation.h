@@ -25,8 +25,8 @@ extern HANDLE hMutexReadScreen;
 void ReadScreenStart(void);
 void ReadScreenStop(void);
 DWORD WINAPI MarkPixel(HDC dc, DWORD X, DWORD Y);
-DWORD WINAPI MouseHookProcedure(CONST LPVOID lpParam);
 bool PixelCompare(COLORREF pixel1, COLORREF pixel2, int variation);
+void IndicatePixel(COLORREF* param, int x, int y);
 //******************************************************************************
 // Секция определения макросов
 //******************************************************************************
